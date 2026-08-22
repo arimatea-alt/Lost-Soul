@@ -22,7 +22,7 @@ local lokasiPertama = CFrame.new(-1170, 2, -565)
 local lokasiKedua = CFrame.new(-3441, -2, -3178)
 
 -- ==========================================
--- PEMBUATAN GUI (ULTRA MODERN & ANIMATED)
+-- PEMBUATAN GUI (FIXED TEXT & SYMBOLS)
 -- ==========================================
 if CoreGui:FindFirstChild("AutoQuestGUI") then
     CoreGui.AutoQuestGUI:Destroy()
@@ -33,28 +33,26 @@ screenGui.Name = "AutoQuestGUI"
 screenGui.Parent = CoreGui
 screenGui.ResetOnSpawn = false
 
--- Panel Utama (Glassmorphism)
+-- Panel Utama
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
 mainFrame.Parent = screenGui
-mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
-mainFrame.BackgroundTransparency = 0.15 -- Efek kaca transparan
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+mainFrame.BackgroundTransparency = 0.1
 mainFrame.Position = UDim2.new(0.05, 0, 0.1, 0)
 mainFrame.Size = UDim2.new(0, 240, 0, 150)
 mainFrame.BorderSizePixel = 0
-mainFrame.ClipsDescendants = false
 
 local cornerMain = Instance.new("UICorner")
-cornerMain.CornerRadius = UDim.new(0, 12)
+cornerMain.CornerRadius = UDim.new(0, 10)
 cornerMain.Parent = mainFrame
 
 local strokeMain = Instance.new("UIStroke")
 strokeMain.Color = Color3.fromRGB(80, 80, 100)
-strokeMain.Thickness = 1.2
-strokeMain.Transparency = 0.3
+strokeMain.Thickness = 1.5
 strokeMain.Parent = mainFrame
 
--- Drop Shadow (Bayangan)
+-- Drop Shadow
 local shadow = Instance.new("ImageLabel")
 shadow.Name = "Shadow"
 shadow.Parent = mainFrame
@@ -68,53 +66,49 @@ shadow.ImageTransparency = 0.5
 shadow.ScaleType = Enum.ScaleType.Slice
 shadow.SliceCenter = Rect.new(23, 23, 277, 277)
 
--- Top Bar (Header Modern)
+-- Top Bar
 local topBar = Instance.new("Frame")
 topBar.Name = "TopBar"
 topBar.Parent = mainFrame
-topBar.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
-topBar.BackgroundTransparency = 0.1
+topBar.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
 topBar.Size = UDim2.new(1, 0, 0, 38)
 topBar.BorderSizePixel = 0
 
 local cornerTop = Instance.new("UICorner")
-cornerTop.CornerRadius = UDim.new(0, 12)
+cornerTop.CornerRadius = UDim.new(0, 10)
 cornerTop.Parent = topBar
 local fixTopBar = Instance.new("Frame")
 fixTopBar.Parent = topBar
-fixTopBar.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
-fixTopBar.BackgroundTransparency = 0.1
+fixTopBar.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
 fixTopBar.Position = UDim2.new(0, 0, 0.5, 0)
 fixTopBar.Size = UDim2.new(1, 0, 0.5, 0)
 fixTopBar.BorderSizePixel = 0
 
--- Separator Line
 local line = Instance.new("Frame")
 line.Parent = topBar
 line.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
 line.BorderSizePixel = 0
 line.Position = UDim2.new(0, 0, 1, 0)
 line.Size = UDim2.new(1, 0, 0, 1)
-line.Transparency = 0.5
 
 local titleLabel = Instance.new("TextLabel")
 titleLabel.Parent = topBar
 titleLabel.BackgroundTransparency = 1
-titleLabel.Position = UDim2.new(0, 15, 0, 0)
+titleLabel.Position = UDim2.new(0, 12, 0, 0)
 titleLabel.Size = UDim2.new(0, 120, 1, 0)
-titleLabel.Font = Enum.Font.GothamBlack
+titleLabel.Font = Enum.Font.SourceSansBold
 titleLabel.Text = "⚡ LOST SOUL HUB"
 titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-titleLabel.TextSize = 13
+titleLabel.TextSize = 15
 titleLabel.TextXAlignment = Enum.TextXAlignment.Left
 
 -- Helper Animasi Tombol
 local function createButtonAnim(btn, normalColor, hoverColor)
     btn.MouseEnter:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = hoverColor}):Play()
+        TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = hoverColor}):Play()
     end)
     btn.MouseLeave:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = normalColor}):Play()
+        TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = normalColor}):Play()
     end)
 end
 
@@ -124,12 +118,12 @@ local colorCloseH = Color3.fromRGB(255, 100, 100)
 local closeButton = Instance.new("TextButton")
 closeButton.Parent = topBar
 closeButton.BackgroundColor3 = colorCloseN
-closeButton.Position = UDim2.new(1, -32, 0, 9)
+closeButton.Position = UDim2.new(1, -30, 0, 9)
 closeButton.Size = UDim2.new(0, 20, 0, 20)
-closeButton.Font = Enum.Font.GothamBold
-closeButton.Text = "✕"
+closeButton.Font = Enum.Font.SourceSansBold
+closeButton.Text = "X" -- Diganti ke huruf X standar agar tidak error
 closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeButton.TextSize = 10
+closeButton.TextSize = 14
 closeButton.AutoButtonColor = false
 local cornerClose = Instance.new("UICorner")
 cornerClose.CornerRadius = UDim.new(1, 0)
@@ -142,42 +136,41 @@ local colorMinH = Color3.fromRGB(255, 220, 50)
 local minButton = Instance.new("TextButton")
 minButton.Parent = topBar
 minButton.BackgroundColor3 = colorMinN
-minButton.Position = UDim2.new(1, -60, 0, 9)
+minButton.Position = UDim2.new(1, -56, 0, 9)
 minButton.Size = UDim2.new(0, 20, 0, 20)
-minButton.Font = Enum.Font.GothamBold
-minButton.Text = "−"
+minButton.Font = Enum.Font.SourceSansBold
+minButton.Text = "-" -- Diganti ke minus standar
 minButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-minButton.TextSize = 14
+minButton.TextSize = 18
 minButton.AutoButtonColor = false
 local cornerMin = Instance.new("UICorner")
 cornerMin.CornerRadius = UDim.new(1, 0)
 cornerMin.Parent = minButton
 createButtonAnim(minButton, colorMinN, colorMinH)
 
--- Tombol Toggle ON/OFF (Dengan Gradient)
+-- Warna Status Toggle
+local colorOff = Color3.fromRGB(231, 76, 60)
+local colorOn = Color3.fromRGB(46, 204, 113)
+
+-- Tombol Toggle ON/OFF
 local toggleButton = Instance.new("TextButton")
 toggleButton.Name = "ToggleButton"
 toggleButton.Parent = mainFrame
-toggleButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.BackgroundColor3 = colorOff
 toggleButton.Position = UDim2.new(0.5, -95, 0, 58)
 toggleButton.Size = UDim2.new(0, 190, 0, 48)
-toggleButton.Font = Enum.Font.GothamBlack
+toggleButton.Font = Enum.Font.SourceSansBold
 toggleButton.Text = "START FARMING"
 toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-toggleButton.TextSize = 14
+toggleButton.TextSize = 18
 toggleButton.AutoButtonColor = false
 local cornerToggle = Instance.new("UICorner")
 cornerToggle.CornerRadius = UDim.new(0, 8)
 cornerToggle.Parent = toggleButton
-
--- UIGradient untuk Toggle (Merah = OFF)
-local gradientToggle = Instance.new("UIGradient")
-gradientToggle.Parent = toggleButton
-gradientToggle.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(231, 76, 60)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(192, 57, 43))
-})
-gradientToggle.Rotation = 45
+local strokeToggle = Instance.new("UIStroke")
+strokeToggle.Color = Color3.fromRGB(0, 0, 0)
+strokeToggle.Thickness = 1
+strokeToggle.Parent = toggleButton
 
 -- Efek Hover untuk Toggle
 toggleButton.MouseEnter:Connect(function()
@@ -193,22 +186,22 @@ statusSub.Parent = mainFrame
 statusSub.BackgroundTransparency = 1
 statusSub.Position = UDim2.new(0, 0, 0, 115)
 statusSub.Size = UDim2.new(1, 0, 0, 20)
-statusSub.Font = Enum.Font.GothamMedium
+statusSub.Font = Enum.Font.SourceSansBold
 statusSub.Text = "Status: IDLE"
-statusSub.TextColor3 = Color3.fromRGB(150, 150, 170)
-statusSub.TextSize = 11
+statusSub.TextColor3 = Color3.fromRGB(180, 180, 200)
+statusSub.TextSize = 14
 
 -- Tombol Bulat Minimized (Floating Bubble)
 local minBubble = Instance.new("TextButton")
 minBubble.Name = "MinimizedBubble"
 minBubble.Parent = screenGui
-minBubble.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
+minBubble.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
 minBubble.Position = UDim2.new(0.05, 0, 0.1, 0)
 minBubble.Size = UDim2.new(0, 50, 0, 50)
-minBubble.Font = Enum.Font.GothamBlack
+minBubble.Font = Enum.Font.SourceSansBold
 minBubble.Text = "⚡"
 minBubble.TextColor3 = Color3.fromRGB(241, 196, 15)
-minBubble.TextSize = 22
+minBubble.TextSize = 24
 minBubble.Visible = false
 local cornerBubble = Instance.new("UICorner")
 cornerBubble.CornerRadius = UDim.new(1, 0)
@@ -616,19 +609,11 @@ toggleButton.MouseButton1Click:Connect(function()
     isRunning = not isRunning
     if isRunning then
         toggleButton.Text = "STOP FARMING"
-        -- Gradient Hijau (ON)
-        gradientToggle.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(46, 204, 113)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(39, 174, 96))
-        })
+        toggleButton.BackgroundColor3 = colorOn
         task.spawn(mainLoop)
     else
         toggleButton.Text = "START FARMING"
-        -- Gradient Merah (OFF)
-        gradientToggle.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(231, 76, 60)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(192, 57, 43))
-        })
+        toggleButton.BackgroundColor3 = colorOff
         statusSub.Text = "Status: Dihentikan"
     end
 end)
