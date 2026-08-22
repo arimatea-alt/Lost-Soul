@@ -20,7 +20,7 @@ local lokasiPertama = CFrame.new(-1170, 2, -565)
 local lokasiKedua = CFrame.new(-3441, -2, -3178)
 
 -- ==========================================
--- PEMBUATAN GUI SEDERHANA (TOGGLE ON/OFF)
+-- PEMBUATAN GUI (JENDELA UTAMA & BUBBLE)
 -- ==========================================
 if CoreGui:FindFirstChild("AutoQuestGUI") then
     CoreGui.AutoQuestGUI:Destroy()
@@ -30,20 +30,126 @@ local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "AutoQuestGUI"
 screenGui.Parent = CoreGui
 
+-- Panel Utama (Jendela Luar)
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Parent = screenGui
+mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+mainFrame.Position = UDim2.new(0.05, 0, 0.1, 0)
+mainFrame.Size = UDim2.new(0, 200, 0, 125)
+mainFrame.Active = true
+mainFrame.Draggable = true
+
+local cornerMain = Instance.new("UICorner")
+cornerMain.CornerRadius = UDim.new(0, 8)
+cornerMain.Parent = mainFrame
+
+-- Top Bar (Header untuk Dragging & Tombol Kontrol)
+local topBar = Instance.new("Frame")
+topBar.Name = "TopBar"
+topBar.Parent = mainFrame
+topBar.BackgroundColor3 = Color3.fromRGB(45, 45, 52)
+topBar.Size = UDim2.new(1, 0, 0, 32)
+topBar.Active = true
+topBar.Draggable = true
+
+local cornerTop = Instance.new("UICorner")
+cornerTop.CornerRadius = UDim.new(0, 8)
+cornerTop.Parent = topBar
+
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Parent = topBar
+titleLabel.BackgroundTransparency = 1
+titleLabel.Position = UDim2.new(0, 10, 0, 0)
+titleLabel.Size = UDim2.new(0, 110, 1, 0)
+titleLabel.Font = Enum.Font.SourceSansBold
+titleLabel.Text = "Lost Soul Auto"
+titleLabel.TextColor3 = Color3.fromRGB(240, 240, 240)
+titleLabel.TextSize = 14
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Tombol Close (X)
+local closeButton = Instance.new("TextButton")
+closeButton.Parent = topBar
+closeButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+closeButton.Position = UDim2.new(1, -28, 0, 6)
+closeButton.Size = UDim2.new(0, 20, 0, 20)
+closeButton.Font = Enum.Font.SourceSansBold
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.TextSize = 12
+local cornerClose = Instance.new("UICorner")
+cornerClose.CornerRadius = UDim.new(1, 0)
+cornerClose.Parent = closeButton
+
+-- Tombol Minimize (-)
+local minButton = Instance.new("TextButton")
+minButton.Parent = topBar
+minButton.BackgroundColor3 = Color3.fromRGB(200, 150, 50)
+minButton.Position = UDim2.new(1, -54, 0, 6)
+minButton.Size = UDim2.new(0, 20, 0, 20)
+minButton.Font = Enum.Font.SourceSansBold
+minButton.Text = "-"
+minButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+minButton.TextSize = 12
+local cornerMin = Instance.new("UICorner")
+cornerMin.CornerRadius = UDim.new(1, 0)
+cornerMin.Parent = minButton
+
+-- Tombol Toggle ON/OFF (Di dalam panel)
 local toggleButton = Instance.new("TextButton")
 toggleButton.Name = "ToggleButton"
-toggleButton.Parent = screenGui
+toggleButton.Parent = mainFrame
 toggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50) -- Merah (OFF)
-toggleButton.Position = UDim2.new(0.05, 0, 0.1, 0)
-toggleButton.Size = UDim2.new(0, 160, 0, 50)
+toggleButton.Position = UDim2.new(0.5, -80, 0, 48)
+toggleButton.Size = UDim2.new(0, 160, 0, 45)
 toggleButton.Font = Enum.Font.SourceSansBold
 toggleButton.Text = "Status: OFF [Click]"
 toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-toggleButton.TextSize = 16
-toggleButton.Active = true
-toggleButton.Draggable = true -- Tombol bisa digeser-geser di layar
+toggleButton.TextSize = 15
+local cornerToggle = Instance.new("UICorner")
+cornerToggle.CornerRadius = UDim.new(0, 6)
+cornerToggle.Parent = toggleButton
+
+-- Tombol Bulat Minimized (Floating Bubble)
+local minBubble = Instance.new("TextButton")
+minBubble.Name = "MinimizedBubble"
+minBubble.Parent = screenGui
+minBubble.BackgroundColor3 = Color3.fromRGB(45, 45, 52)
+minBubble.Position = UDim2.new(0.05, 0, 0.1, 0)
+minBubble.Size = UDim2.new(0, 45, 0, 45)
+minBubble.Font = Enum.Font.SourceSansBold
+minBubble.Text = "LS"
+minBubble.TextColor3 = Color3.fromRGB(255, 255, 255)
+minBubble.TextSize = 14
+minBubble.Visible = false
+minBubble.Active = true
+minBubble.Draggable = true
+local cornerBubble = Instance.new("UICorner")
+cornerBubble.CornerRadius = UDim.new(1, 0)
+cornerBubble.Parent = minBubble
 
 local isRunning = false
+
+-- ==========================================
+-- FUNGSI KONTROL GUI (CLOSE & MINIMIZE)
+-- ==========================================
+closeButton.MouseButton1Click:Connect(function()
+    isRunning = false
+    screenGui:Destroy()
+end)
+
+minButton.MouseButton1Click:Connect(function()
+    minBubble.Position = mainFrame.Position
+    mainFrame.Visible = false
+    minBubble.Visible = true
+end)
+
+minBubble.MouseButton1Click:Connect(function()
+    mainFrame.Position = minBubble.Position
+    minBubble.Visible = false
+    mainFrame.Visible = true
+end)
 
 -- ==========================================
 -- FUNGSI BANTUAN DIALOG & PROXIMITY
@@ -399,19 +505,16 @@ local function mainLoop()
 end
 
 -- ==========================================
--- EVENT KETIKA TOMBOL GUI DI-KLIK
+-- EVENT KETIKA TOMBOL TOGGLE DI-KLIK
 -- ==========================================
 toggleButton.MouseButton1Click:Connect(function()
     isRunning = not isRunning
     if isRunning then
         toggleButton.Text = "Status: ON [Click]"
         toggleButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50) -- Hijau
-        -- Jalankan mainLoop di background menggunakan task.spawn agar GUI tidak nge-freeze
         task.spawn(mainLoop)
     else
         toggleButton.Text = "Status: OFF [Click]"
         toggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50) -- Merah
-        -- Ketika di-OFF-kan, variabel isRunning akan bernilai false, 
-        -- dan loop/magnet akan otomatis berhenti dalam beberapa detik berikutnya.
     end
 end)
