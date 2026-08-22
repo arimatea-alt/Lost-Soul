@@ -460,6 +460,7 @@ local function mainLoop()
             print("-> Senjata 'Attack' di-equip!")
         end
 
+        -- 1. KUGHA
         if not isRunning then break end
         print("-> Mencari target 1: Kugha...")
         farmSpecificMob(function()
@@ -471,7 +472,26 @@ local function mainLoop()
         if not isRunning then break end
         print("✅ Kugha dikalahkan!")
 
-        print("-> Mencari target 2: Agito...")
+        -- 2. FLYING XUGO (OPTIONAL)
+        if not isRunning then break end
+        print("-> Mengecek keberadaan target opsional: FlyingXugo...")
+        task.wait(2) -- Memberikan jeda waktu barangkali FlyingXugo sedang spawn
+        if workspace:FindFirstChild("Mobs") and workspace.Mobs:FindFirstChild("FlyingXugo") then
+            print("-> FlyingXugo ditemukan! Mengalahkan FlyingXugo...")
+            farmSpecificMob(function()
+                if workspace:FindFirstChild("Mobs") then
+                    return workspace.Mobs:FindFirstChild("FlyingXugo")
+                end
+                return nil
+            end)
+            if not isRunning then break end
+            print("✅ FlyingXugo dikalahkan!")
+        else
+            print("⏭️ FlyingXugo tidak ada, lanjut ke target berikutnya.")
+        end
+
+        -- 3. AGITO
+        print("-> Mencari target 3: Agito...")
         farmSpecificMob(function()
             if workspace:FindFirstChild("Mobs") then
                 return workspace.Mobs:FindFirstChild("Agito")
@@ -481,7 +501,8 @@ local function mainLoop()
         if not isRunning then break end
         print("✅ Agito dikalahkan!")
 
-        print("-> Mencari target 3: Daguba...")
+        -- 4. DAGUBA
+        print("-> Mencari target 4: Daguba...")
         farmSpecificMob(function()
             if workspace:FindFirstChild("Mobs") then
                 return workspace.Mobs:FindFirstChild("Daguba")
