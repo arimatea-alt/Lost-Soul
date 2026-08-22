@@ -6,6 +6,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
 
@@ -21,7 +22,7 @@ local lokasiPertama = CFrame.new(-1170, 2, -565)
 local lokasiKedua = CFrame.new(-3441, -2, -3178)
 
 -- ==========================================
--- PEMBUATAN GUI (MODERN & SLEEK DESIGN)
+-- PEMBUATAN GUI (ULTRA MODERN & ANIMATED)
 -- ==========================================
 if CoreGui:FindFirstChild("AutoQuestGUI") then
     CoreGui.AutoQuestGUI:Destroy()
@@ -32,133 +33,195 @@ screenGui.Name = "AutoQuestGUI"
 screenGui.Parent = CoreGui
 screenGui.ResetOnSpawn = false
 
--- Panel Utama (Jendela Luar)
+-- Panel Utama (Glassmorphism)
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
 mainFrame.Parent = screenGui
-mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 24)
+mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+mainFrame.BackgroundTransparency = 0.15 -- Efek kaca transparan
 mainFrame.Position = UDim2.new(0.05, 0, 0.1, 0)
-mainFrame.Size = UDim2.new(0, 220, 0, 140)
+mainFrame.Size = UDim2.new(0, 240, 0, 150)
 mainFrame.BorderSizePixel = 0
+mainFrame.ClipsDescendants = false
 
 local cornerMain = Instance.new("UICorner")
-cornerMain.CornerRadius = UDim.new(0, 10)
+cornerMain.CornerRadius = UDim.new(0, 12)
 cornerMain.Parent = mainFrame
 
 local strokeMain = Instance.new("UIStroke")
-strokeMain.Color = Color3.fromRGB(45, 45, 55)
-strokeMain.Thickness = 1.5
+strokeMain.Color = Color3.fromRGB(80, 80, 100)
+strokeMain.Thickness = 1.2
+strokeMain.Transparency = 0.3
 strokeMain.Parent = mainFrame
+
+-- Drop Shadow (Bayangan)
+local shadow = Instance.new("ImageLabel")
+shadow.Name = "Shadow"
+shadow.Parent = mainFrame
+shadow.BackgroundTransparency = 1
+shadow.Position = UDim2.new(0, -15, 0, -15)
+shadow.Size = UDim2.new(1, 30, 1, 30)
+shadow.ZIndex = -1
+shadow.Image = "rbxassetid://5554236805"
+shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+shadow.ImageTransparency = 0.5
+shadow.ScaleType = Enum.ScaleType.Slice
+shadow.SliceCenter = Rect.new(23, 23, 277, 277)
 
 -- Top Bar (Header Modern)
 local topBar = Instance.new("Frame")
 topBar.Name = "TopBar"
 topBar.Parent = mainFrame
-topBar.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
-topBar.Size = UDim2.new(1, 0, 0, 36)
+topBar.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
+topBar.BackgroundTransparency = 0.1
+topBar.Size = UDim2.new(1, 0, 0, 38)
 topBar.BorderSizePixel = 0
 
 local cornerTop = Instance.new("UICorner")
-cornerTop.CornerRadius = UDim.new(0, 10)
+cornerTop.CornerRadius = UDim.new(0, 12)
 cornerTop.Parent = topBar
-
--- Memotong sudut bawah TopBar agar tetap kotak dan menyatu dengan MainFrame
 local fixTopBar = Instance.new("Frame")
 fixTopBar.Parent = topBar
-fixTopBar.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
+fixTopBar.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
+fixTopBar.BackgroundTransparency = 0.1
 fixTopBar.Position = UDim2.new(0, 0, 0.5, 0)
 fixTopBar.Size = UDim2.new(1, 0, 0.5, 0)
 fixTopBar.BorderSizePixel = 0
 
+-- Separator Line
+local line = Instance.new("Frame")
+line.Parent = topBar
+line.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
+line.BorderSizePixel = 0
+line.Position = UDim2.new(0, 0, 1, 0)
+line.Size = UDim2.new(1, 0, 0, 1)
+line.Transparency = 0.5
+
 local titleLabel = Instance.new("TextLabel")
 titleLabel.Parent = topBar
 titleLabel.BackgroundTransparency = 1
-titleLabel.Position = UDim2.new(0, 12, 0, 0)
+titleLabel.Position = UDim2.new(0, 15, 0, 0)
 titleLabel.Size = UDim2.new(0, 120, 1, 0)
-titleLabel.Font = Enum.Font.GothamBold
-titleLabel.Text = "⚡ Lost Soul UI"
-titleLabel.TextColor3 = Color3.fromRGB(230, 230, 240)
+titleLabel.Font = Enum.Font.GothamBlack
+titleLabel.Text = "⚡ LOST SOUL HUB"
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 titleLabel.TextSize = 13
 titleLabel.TextXAlignment = Enum.TextXAlignment.Left
 
+-- Helper Animasi Tombol
+local function createButtonAnim(btn, normalColor, hoverColor)
+    btn.MouseEnter:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = hoverColor}):Play()
+    end)
+    btn.MouseLeave:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = normalColor}):Play()
+    end)
+end
+
 -- Tombol Close (X)
+local colorCloseN = Color3.fromRGB(235, 77, 75)
+local colorCloseH = Color3.fromRGB(255, 100, 100)
 local closeButton = Instance.new("TextButton")
 closeButton.Parent = topBar
-closeButton.BackgroundColor3 = Color3.fromRGB(235, 77, 75)
-closeButton.Position = UDim2.new(1, -30, 0, 8)
+closeButton.BackgroundColor3 = colorCloseN
+closeButton.Position = UDim2.new(1, -32, 0, 9)
 closeButton.Size = UDim2.new(0, 20, 0, 20)
 closeButton.Font = Enum.Font.GothamBold
 closeButton.Text = "✕"
 closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 closeButton.TextSize = 10
+closeButton.AutoButtonColor = false
 local cornerClose = Instance.new("UICorner")
 cornerClose.CornerRadius = UDim.new(1, 0)
 cornerClose.Parent = closeButton
+createButtonAnim(closeButton, colorCloseN, colorCloseH)
 
 -- Tombol Minimize (-)
+local colorMinN = Color3.fromRGB(241, 196, 15)
+local colorMinH = Color3.fromRGB(255, 220, 50)
 local minButton = Instance.new("TextButton")
 minButton.Parent = topBar
-minButton.BackgroundColor3 = Color3.fromRGB(241, 196, 15)
-minButton.Position = UDim2.new(1, -56, 0, 8)
+minButton.BackgroundColor3 = colorMinN
+minButton.Position = UDim2.new(1, -60, 0, 9)
 minButton.Size = UDim2.new(0, 20, 0, 20)
 minButton.Font = Enum.Font.GothamBold
-minButton.Text = "-"
+minButton.Text = "−"
 minButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-minButton.TextSize = 11
+minButton.TextSize = 14
+minButton.AutoButtonColor = false
 local cornerMin = Instance.new("UICorner")
 cornerMin.CornerRadius = UDim.new(1, 0)
 cornerMin.Parent = minButton
+createButtonAnim(minButton, colorMinN, colorMinH)
 
--- Tombol Toggle ON/OFF (Di dalam panel)
+-- Tombol Toggle ON/OFF (Dengan Gradient)
 local toggleButton = Instance.new("TextButton")
 toggleButton.Name = "ToggleButton"
 toggleButton.Parent = mainFrame
-toggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50) -- Merah (OFF)
-toggleButton.Position = UDim2.new(0.5, -90, 0, 52)
-toggleButton.Size = UDim2.new(0, 180, 0, 48)
-toggleButton.Font = Enum.Font.GothamBold
-toggleButton.Text = "STATUS: OFF"
+toggleButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.Position = UDim2.new(0.5, -95, 0, 58)
+toggleButton.Size = UDim2.new(0, 190, 0, 48)
+toggleButton.Font = Enum.Font.GothamBlack
+toggleButton.Text = "START FARMING"
 toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 toggleButton.TextSize = 14
+toggleButton.AutoButtonColor = false
 local cornerToggle = Instance.new("UICorner")
 cornerToggle.CornerRadius = UDim.new(0, 8)
 cornerToggle.Parent = toggleButton
 
--- Status Indicator text kecil di bawah tombol
+-- UIGradient untuk Toggle (Merah = OFF)
+local gradientToggle = Instance.new("UIGradient")
+gradientToggle.Parent = toggleButton
+gradientToggle.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(231, 76, 60)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(192, 57, 43))
+})
+gradientToggle.Rotation = 45
+
+-- Efek Hover untuk Toggle
+toggleButton.MouseEnter:Connect(function()
+    TweenService:Create(toggleButton, TweenInfo.new(0.2), {Size = UDim2.new(0, 196, 0, 52), Position = UDim2.new(0.5, -98, 0, 56)}):Play()
+end)
+toggleButton.MouseLeave:Connect(function()
+    TweenService:Create(toggleButton, TweenInfo.new(0.2), {Size = UDim2.new(0, 190, 0, 48), Position = UDim2.new(0.5, -95, 0, 58)}):Play()
+end)
+
+-- Status Sub-text
 local statusSub = Instance.new("TextLabel")
 statusSub.Parent = mainFrame
 statusSub.BackgroundTransparency = 1
-statusSub.Position = UDim2.new(0, 0, 0, 108)
+statusSub.Position = UDim2.new(0, 0, 0, 115)
 statusSub.Size = UDim2.new(1, 0, 0, 20)
-statusSub.Font = Enum.Font.Gotham
-statusSub.Text = "Auto-Farm & Dungeon Ready"
-statusSub.TextColor3 = Color3.fromRGB(120, 120, 140)
-statusSub.TextSize = 10
+statusSub.Font = Enum.Font.GothamMedium
+statusSub.Text = "Status: IDLE"
+statusSub.TextColor3 = Color3.fromRGB(150, 150, 170)
+statusSub.TextSize = 11
 
 -- Tombol Bulat Minimized (Floating Bubble)
 local minBubble = Instance.new("TextButton")
 minBubble.Name = "MinimizedBubble"
 minBubble.Parent = screenGui
-minBubble.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
+minBubble.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
 minBubble.Position = UDim2.new(0.05, 0, 0.1, 0)
-minBubble.Size = UDim2.new(0, 48, 0, 48)
-minBubble.Font = Enum.Font.GothamBold
-minBubble.Text = "LS"
-minBubble.TextColor3 = Color3.fromRGB(255, 255, 255)
-minBubble.TextSize = 15
+minBubble.Size = UDim2.new(0, 50, 0, 50)
+minBubble.Font = Enum.Font.GothamBlack
+minBubble.Text = "⚡"
+minBubble.TextColor3 = Color3.fromRGB(241, 196, 15)
+minBubble.TextSize = 22
 minBubble.Visible = false
 local cornerBubble = Instance.new("UICorner")
 cornerBubble.CornerRadius = UDim.new(1, 0)
 cornerBubble.Parent = minBubble
 local strokeBubble = Instance.new("UIStroke")
-strokeBubble.Color = Color3.fromRGB(80, 80, 100)
-strokeBubble.Thickness = 1.5
+strokeBubble.Color = Color3.fromRGB(241, 196, 15)
+strokeBubble.Thickness = 2
 strokeBubble.Parent = minBubble
 
 local isRunning = false
 
 -- ==========================================
--- CUSTOM SMOOTH DRAGGING SYSTEM (FIX BUG)
+-- CUSTOM SMOOTH DRAGGING SYSTEM
 -- ==========================================
 local dragging, dragInput, dragStart, startPos
 
@@ -167,7 +230,6 @@ topBar.InputBegan:Connect(function(input)
         dragging = true
         dragStart = input.Position
         startPos = mainFrame.Position
-        
         input.Changed:Connect(function()
             if input.UserInputState == Enum.UserInputState.End then
                 dragging = false
@@ -189,15 +251,12 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- Dragging untuk Bubble saat Minimized
 local draggingBubble, dragInputBubble, dragStartBubble, startPosBubble
-
 minBubble.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         draggingBubble = true
         dragStartBubble = input.Position
         startPosBubble = minBubble.Position
-        
         input.Changed:Connect(function()
             if input.UserInputState == Enum.UserInputState.End then
                 draggingBubble = false
@@ -228,7 +287,7 @@ closeButton.MouseButton1Click:Connect(function()
 end)
 
 minButton.MouseButton1Click:Connect(function()
-    minBubble.Position = mainFrame.Position
+    minBubble.Position = UDim2.new(0, mainFrame.AbsolutePosition.X, 0, mainFrame.AbsolutePosition.Y)
     mainFrame.Visible = false
     minBubble.Visible = true
 end)
@@ -258,7 +317,7 @@ end
 -- ==========================================
 local function alurAwalSetup()
     if not isRunning then return end
-    print("[Setup] Memulai pengambilan quest awal...")
+    statusSub.Text = "Status: Mengambil Quest Awal..."
     
     local character = player.Character or player.CharacterAdded:Wait()
     local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
@@ -302,8 +361,8 @@ end
 -- ==========================================
 -- FUNGSI FARMING TARGET DENGAN AUTO-SPAWN WAIT
 -- ==========================================
-local function farmSpecificMob(getMobFunction)
-    print("⏳ Menunggu target spawn...")
+local function farmSpecificMob(getMobFunction, mobName)
+    statusSub.Text = "Status: Menunggu " .. mobName .. "..."
     
     local targetMob = nil
     while isRunning and task.wait(0.2) do
@@ -317,7 +376,7 @@ local function farmSpecificMob(getMobFunction)
     end
     
     if not isRunning then return end
-    print("✅ Target ditemukan, mengaktifkan magnet, combat, & spam ultimate!")
+    statusSub.Text = "Status: Farming " .. mobName .. " ⚔️"
 
     local isTargetActive = true
     
@@ -431,12 +490,10 @@ end
 -- FUNGSI UTAMA YANG DI-LOOP
 -- ==========================================
 local function mainLoop()
-    print("=== MEMULAI SCRIPT AUTO-QUEST & DUNGEON ===")
-    
     alurAwalSetup()
 
     while isRunning do
-        print("[Loop] Membuat dan Memulai Dungeon Lobby...")
+        statusSub.Text = "Status: Membuat Lobby..."
         
         if not isRunning then break end
         lobbyAction:InvokeServer(unpack({ "create", "public", "trial", "AncientWorld", 2, 1 }))
@@ -448,7 +505,6 @@ local function mainLoop()
         if not isRunning then break end
         
         dungeonSession:FireServer(unpack({ "Ready", "1787387146_6082" }))
-        print("-> Berhasil masuk ke sesi Dungeon!")
         
         task.wait(3)
         if not isRunning then break end
@@ -457,88 +513,62 @@ local function mainLoop()
         local attackTool = player.Backpack:FindFirstChild("Attack")
         if attackTool then
             currentCharacter:WaitForChild("Humanoid"):EquipTool(attackTool)
-            print("-> Senjata 'Attack' di-equip!")
         end
 
         -- 1. KUGHA
         if not isRunning then break end
-        print("-> Mencari target 1: Kugha...")
         farmSpecificMob(function()
-            if workspace:FindFirstChild("Mobs") then
-                return workspace.Mobs:FindFirstChild("Kugha")
-            end
+            if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Kugha") end
             return nil
-        end)
-        if not isRunning then break end
-        print("✅ Kugha dikalahkan!")
+        end, "Kugha")
 
-        -- 2. FLYING XUGO (OPTIONAL)
+        -- 2. FLYING XUGO
         if not isRunning then break end
-        print("-> Mengecek keberadaan target opsional: FlyingXugo...")
-        task.wait(2) -- Memberikan jeda waktu barangkali FlyingXugo sedang spawn
+        task.wait(2) 
         if workspace:FindFirstChild("Mobs") and workspace.Mobs:FindFirstChild("FlyingXugo") then
-            print("-> FlyingXugo ditemukan! Mengalahkan FlyingXugo...")
             farmSpecificMob(function()
-                if workspace:FindFirstChild("Mobs") then
-                    return workspace.Mobs:FindFirstChild("FlyingXugo")
-                end
+                if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("FlyingXugo") end
                 return nil
-            end)
-            if not isRunning then break end
-            print("✅ FlyingXugo dikalahkan!")
-        else
-            print("⏭️ FlyingXugo tidak ada, lanjut ke target berikutnya.")
+            end, "FlyingXugo")
         end
 
         -- 3. AGITO
-        print("-> Mencari target 3: Agito...")
-        farmSpecificMob(function()
-            if workspace:FindFirstChild("Mobs") then
-                return workspace.Mobs:FindFirstChild("Agito")
-            end
-            return nil
-        end)
         if not isRunning then break end
-        print("✅ Agito dikalahkan!")
+        farmSpecificMob(function()
+            if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Agito") end
+            return nil
+        end, "Agito")
 
         -- 4. DAGUBA
-        print("-> Mencari target 4: Daguba...")
-        farmSpecificMob(function()
-            if workspace:FindFirstChild("Mobs") then
-                return workspace.Mobs:FindFirstChild("Daguba")
-            end
-            return nil
-        end)
         if not isRunning then break end
-        print("✅ Daguba dikalahkan!")
+        farmSpecificMob(function()
+            if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Daguba") end
+            return nil
+        end, "Daguba")
 
-        print("-> Semua boss selesai! Meng-unequip senjata...")
+        -- SELESAI DUNGEON
+        statusSub.Text = "Status: Dungeon Selesai!"
         local activeChar = player.Character
         if activeChar then
             local equippedTool = activeChar:FindFirstChild("Attack")
-            if equippedTool then
-                equippedTool.Parent = player.Backpack
-                print("-> Senjata dikembalikan ke Backpack.")
-            end
+            if equippedTool then equippedTool.Parent = player.Backpack end
         end
         
-        print("-> Menunggu 10 detik sebelum kembali ke desa/NPC...")
         for i = 1, 10 do
             if not isRunning then break end
+            statusSub.Text = "Status: Menunggu " .. (11 - i) .. "s"
             task.wait(1)
         end
         if not isRunning then break end
 
-        print("-> Teleport ke Koordinat Awal (DojoStudent)...")
+        -- 7. KEMBALI KE LOKASI AWAL (DojoStudent)
+        statusSub.Text = "Status: Turn-in Quest..."
         local freshChar = player.Character or player.CharacterAdded:Wait()
         local freshHRP = freshChar:WaitForChild("HumanoidRootPart")
-        if freshHRP then
-            freshHRP.CFrame = lokasiPertama * CFrame.new(0, 3, 0)
-        end
+        if freshHRP then freshHRP.CFrame = lokasiPertama * CFrame.new(0, 3, 0) end
         task.wait(1)
         if not isRunning then break end
 
-        print("-> Menyerahkan quest ke DojoStudent...")
         triggerNPC("DojoStudent")
         task.wait(1)
         if not isRunning then break end
@@ -553,17 +583,13 @@ local function mainLoop()
         task.wait(1)
         if not isRunning then break end
 
-        print("-> Teleport ke Koordinat Kedua (Shoichi)...")
-        if freshHRP then
-            freshHRP.CFrame = lokasiKedua * CFrame.new(0, 3, 0)
-        end
+        -- 8. KEMBALI KE LOKASI KEDUA (Shoichi)
+        if freshHRP then freshHRP.CFrame = lokasiKedua * CFrame.new(0, 3, 0) end
         task.wait(1.5)
         if not isRunning then break end
 
-        print("-> Berinteraksi dengan Shoichi (Sesi 1)...")
         triggerNPC("Shoichi")
         task.wait(1)
-        
         dialogueEvent:FireServer(unpack({ { Choice = "[ Challenge ]" } }))
         task.wait(0.5)
         dialogueEvent:FireServer(unpack({ { Choice = "[ Quest ]" } }))
@@ -572,20 +598,15 @@ local function mainLoop()
         task.wait(1)
         if not isRunning then break end
 
-        print("-> Berinteraksi dengan Shoichi (Sesi 2)...")
         triggerNPC("Shoichi")
         task.wait(1)
-        
         dialogueEvent:FireServer(unpack({ { Choice = "[ Challenge ]" } }))
         task.wait(0.5)
         dialogueEvent:FireServer(unpack({ { Choice = "[ Quest ]" } }))
         task.wait(0.5)
         dialogueEvent:FireServer(unpack({ { Exit = true } }))
         task.wait(1.5)
-
-        print("🔄 Siklus selesai! Mengulang kembali dari pembuatan Dungeon Lobby...")
     end
-    print("🛑 Script dihentikan oleh pengguna.")
 end
 
 -- ==========================================
@@ -594,11 +615,20 @@ end
 toggleButton.MouseButton1Click:Connect(function()
     isRunning = not isRunning
     if isRunning then
-        toggleButton.Text = "STATUS: ON"
-        toggleButton.BackgroundColor3 = Color3.fromRGB(46, 204, 113) -- Hijau Elegan
+        toggleButton.Text = "STOP FARMING"
+        -- Gradient Hijau (ON)
+        gradientToggle.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(46, 204, 113)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(39, 174, 96))
+        })
         task.spawn(mainLoop)
     else
-        toggleButton.Text = "STATUS: OFF"
-        toggleButton.BackgroundColor3 = Color3.fromRGB(231, 76, 60) -- Merah Elegan
+        toggleButton.Text = "START FARMING"
+        -- Gradient Merah (OFF)
+        gradientToggle.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(231, 76, 60)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(192, 57, 43))
+        })
+        statusSub.Text = "Status: Dihentikan"
     end
 end)
