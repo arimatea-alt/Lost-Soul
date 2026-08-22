@@ -4,10 +4,9 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
 
 local player = Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
 -- Path Remote Event & Function
 local remoteFolder = ReplicatedStorage:WaitForChild("Remote")
@@ -19,6 +18,32 @@ local dungeonSession = remoteFolder:WaitForChild("Dungeon"):WaitForChild("Sessio
 -- Koordinat Target
 local lokasiPertama = CFrame.new(-1170, 2, -565)
 local lokasiKedua = CFrame.new(-3441, -2, -3178)
+
+-- ==========================================
+-- PEMBUATAN GUI SEDERHANA (TOGGLE ON/OFF)
+-- ==========================================
+if CoreGui:FindFirstChild("AutoQuestGUI") then
+    CoreGui.AutoQuestGUI:Destroy()
+end
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "AutoQuestGUI"
+screenGui.Parent = CoreGui
+
+local toggleButton = Instance.new("TextButton")
+toggleButton.Name = "ToggleButton"
+toggleButton.Parent = screenGui
+toggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50) -- Merah (OFF)
+toggleButton.Position = UDim2.new(0.05, 0, 0.1, 0)
+toggleButton.Size = UDim2.new(0, 160, 0, 50)
+toggleButton.Font = Enum.Font.SourceSansBold
+toggleButton.Text = "Status: OFF [Click]"
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.TextSize = 16
+toggleButton.Active = true
+toggleButton.Draggable = true -- Tombol bisa digeser-geser di layar
+
+local isRunning = false
 
 -- ==========================================
 -- FUNGSI BANTUAN DIALOG & PROXIMITY
@@ -38,18 +63,24 @@ end
 -- ALUR AWAL (DIJALANKAN SEKALI SAJA)
 -- ==========================================
 local function alurAwalSetup()
+    if not isRunning then return end
     print("[Setup] Memulai pengambilan quest awal...")
     
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
     -- 1. Teleport ke DojoStudent
     if humanoidRootPart then
         humanoidRootPart.CFrame = lokasiPertama * CFrame.new(0, 3, 0)
     end
     task.wait(1)
     
+    if not isRunning then return end
     -- 2. Trigger DojoStudent
     triggerNPC("DojoStudent")
     task.wait(1)
     
+    if not isRunning then return end
     -- 3. Dialog Ambil Quest Awal
     dialogueEvent:FireServer(unpack({ { Choice = "Sure.." } }))
     task.wait(0.5)
@@ -58,12 +89,16 @@ local function alurAwalSetup()
     dialogueEvent:FireServer(unpack({ { Choice = "Start 'Ancient Argument'" } }))
     task.wait(1)
     
+    if not isRunning then return end
     -- 4. Teleport ke Shoichi
-    if humanoidRootPart then
-        humanoidRootPart.CFrame = lokasiKedua * CFrame.new(0, 3, 0)
+    local currentCharacter = player.Character or player.CharacterAdded:Wait()
+    local currentHRP = currentCharacter:WaitForChild("HumanoidRootPart")
+    if currentHRP then
+        currentHRP.CFrame = lokasiKedua * CFrame.new(0, 3, 0)
     end
     task.wait(1.5)
     
+    if not isRunning then return end
     -- 5. Trigger Shoichi & Query Lobby
     triggerNPC("Shoichi")
     task.wait(1)
@@ -83,7 +118,7 @@ local function farmSpecificMob(getMobFunction)
     
     -- 1. MENUNGGU TARGET MUNCUL DI WORKSPACE
     local targetMob = nil
-    while task.wait(0.2) do
+    while isRunning and task.wait(0.2) do
         targetMob = getMobFunction()
         if targetMob and targetMob:FindFirstChild("RootPart") then
             local hum = targetMob:FindFirstChild("Humanoid")
@@ -92,14 +127,16 @@ local function farmSpecificMob(getMobFunction)
             end
         end
     end
-    print("✅ Target ditemukan, mengaktifkan magnet, combat, & spam ultimate baru!")
+    
+    if not isRunning then return end
+    print("✅ Target ditemukan, mengaktifkan magnet, combat, & spam ultimate!")
 
     local isTargetActive = true
     
     -- 2. Sistem Magnet ke RootPart Target secara Real-time
     local magnetConnection
     magnetConnection = RunService.Heartbeat:Connect(function()
-        if not isTargetActive then return end
+        if not isTargetActive or not isRunning then return end
         
         local currentMob = getMobFunction()
         if currentMob then
@@ -123,9 +160,9 @@ local function farmSpecificMob(getMobFunction)
         end
     end)
 
-    -- 3. THREAD TERPISAH: SPAM ULTIMATE BARU TANPA COOLDOWN / ANIMASI
+    -- 3. THREAD TERPISAH: SPAM ULTIMATE TANPA COOLDOWN / ANIMASI
     task.spawn(function()
-        while isTargetActive do
+        while isTargetActive and isRunning do
             local characterRef = player.Character
             if characterRef and characterRef:FindFirstChild("PlayerHandler") then
                 local playerHandler = characterRef.PlayerHandler:FindFirstChild("HandlerEvent")
@@ -141,7 +178,6 @@ local function farmSpecificMob(getMobFunction)
                     playerHandler:FireServer(unpack(args))
                 end
             end
-            -- Jeda singkat agar spam berjalan lancar tanpa nge-lag/crash
             task.wait(0.2)
         end
     end)
@@ -153,7 +189,7 @@ local function farmSpecificMob(getMobFunction)
     local characterRef = player.Character or player.CharacterAdded:Wait()
     local playerHandler = characterRef:WaitForChild("PlayerHandler"):WaitForChild("HandlerEvent")
 
-    while isTargetActive and task.wait() do
+    while isTargetActive and isRunning and task.wait() do
         local currentMob = getMobFunction()
         if currentMob and currentMob:FindFirstChild("RootPart") then
             local targetRoot = currentMob.RootPart
@@ -162,7 +198,7 @@ local function farmSpecificMob(getMobFunction)
             -- Heavy Attack 1
             playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
             task.wait(2)
-            if not isTargetActive then break end
+            if not isTargetActive or not isRunning then break end
 
             -- Skill 1 (Key E - CD 10 Detik)
             if tick() - lastSkill1Time >= 10 then
@@ -173,17 +209,17 @@ local function farmSpecificMob(getMobFunction)
                 playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
                 task.wait(2)
             end
-            if not isTargetActive then break end
+            if not isTargetActive or not isRunning then break end
 
             -- Heavy Attack 2
             playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
             task.wait(2)
-            if not isTargetActive then break end
+            if not isTargetActive or not isRunning then break end
 
             -- Basic Attack
             playerHandler:FireServer(unpack({ { CombatAction = true, LightAttack = true, MouseData = aimCFrame } }))
             task.wait(0.2)
-            if not isTargetActive then break end
+            if not isTargetActive or not isRunning then break end
 
             -- Skill 2 (Key R - CD 15 Detik)
             if tick() - lastSkill2Time >= 15 then
@@ -194,12 +230,12 @@ local function farmSpecificMob(getMobFunction)
                 playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
                 task.wait(2)
             end
-            if not isTargetActive then break end
+            if not isTargetActive or not isRunning then break end
 
             -- Heavy Attack 3
             playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
             task.wait(2)
-            if not isTargetActive then break end
+            if not isTargetActive or not isRunning then break end
 
         else
             isTargetActive = false
@@ -213,128 +249,169 @@ local function farmSpecificMob(getMobFunction)
 end
 
 -- ==========================================
--- EKSEKUSI UTAMA (LOOPING DUNGEON & TURN-IN)
+-- FUNGSI UTAMA YANG DI-LOOP
 -- ==========================================
-print("=== MEMULAI SCRIPT AUTO-QUEST & DUNGEON ===")
-
--- Jalankan setup awal sekali
-alurAwalSetup()
-
--- Loop Utama Berkelanjutan
-while true do
-    print("[Loop] Membuat dan Memulai Dungeon Lobby...")
+local function mainLoop()
+    print("=== MEMULAI SCRIPT AUTO-QUEST & DUNGEON ===")
     
-    -- 1. Buat & Start Lobby
-    lobbyAction:InvokeServer(unpack({ "create", "public", "trial", "AncientWorld", 2, 1 }))
-    task.wait(1)
-    lobbyAction:InvokeServer(unpack({ "start" }))
-    task.wait(2)
-    dungeonSession:FireServer(unpack({ "Ready", "1787387146_6082" }))
-    print("-> Berhasil masuk ke sesi Dungeon!")
-    
-    -- 2. Tunggu load & Equip Senjata
-    task.wait(3)
-    local currentCharacter = player.Character or player.CharacterAdded:Wait()
-    local attackTool = player.Backpack:FindFirstChild("Attack")
-    if attackTool then
-        currentCharacter:WaitForChild("Humanoid"):EquipTool(attackTool)
-        print("-> Senjata 'Attack' di-equip!")
-    end
+    -- Jalankan setup awal sekali
+    alurAwalSetup()
 
-    -- 3. FARM TARGET 1: Kugha
-    print("-> Mencari target 1: Kugha...")
-    farmSpecificMob(function()
-        if workspace:FindFirstChild("Mobs") then
-            return workspace.Mobs:FindFirstChild("Kugha")
+    -- Loop Utama Berkelanjutan
+    while isRunning do
+        print("[Loop] Membuat dan Memulai Dungeon Lobby...")
+        
+        if not isRunning then break end
+        -- 1. Buat & Start Lobby
+        lobbyAction:InvokeServer(unpack({ "create", "public", "trial", "AncientWorld", 2, 1 }))
+        task.wait(1)
+        if not isRunning then break end
+        
+        lobbyAction:InvokeServer(unpack({ "start" }))
+        task.wait(2)
+        if not isRunning then break end
+        
+        dungeonSession:FireServer(unpack({ "Ready", "1787387146_6082" }))
+        print("-> Berhasil masuk ke sesi Dungeon!")
+        
+        -- 2. Tunggu load & Equip Senjata
+        task.wait(3)
+        if not isRunning then break end
+        
+        local currentCharacter = player.Character or player.CharacterAdded:Wait()
+        local attackTool = player.Backpack:FindFirstChild("Attack")
+        if attackTool then
+            currentCharacter:WaitForChild("Humanoid"):EquipTool(attackTool)
+            print("-> Senjata 'Attack' di-equip!")
         end
-        return nil
-    end)
-    print("✅ Kugha dikalahkan!")
 
-    -- 4. FARM TARGET 2: Agito
-    print("-> Mencari target 2: Agito...")
-    farmSpecificMob(function()
-        if workspace:FindFirstChild("Mobs") then
-            return workspace.Mobs:FindFirstChild("Agito")
+        -- 3. FARM TARGET 1: Kugha
+        if not isRunning then break end
+        print("-> Mencari target 1: Kugha...")
+        farmSpecificMob(function()
+            if workspace:FindFirstChild("Mobs") then
+                return workspace.Mobs:FindFirstChild("Kugha")
+            end
+            return nil
+        end)
+        if not isRunning then break end
+        print("✅ Kugha dikalahkan!")
+
+        -- 4. FARM TARGET 2: Agito
+        print("-> Mencari target 2: Agito...")
+        farmSpecificMob(function()
+            if workspace:FindFirstChild("Mobs") then
+                return workspace.Mobs:FindFirstChild("Agito")
+            end
+            return nil
+        end)
+        if not isRunning then break end
+        print("✅ Agito dikalahkan!")
+
+        -- 5. FARM TARGET 3: Daguba
+        print("-> Mencari target 3: Daguba...")
+        farmSpecificMob(function()
+            if workspace:FindFirstChild("Mobs") then
+                return workspace.Mobs:FindFirstChild("Daguba")
+            end
+            return nil
+        end)
+        if not isRunning then break end
+        print("✅ Daguba dikalahkan!")
+
+        -- 6. SELESAI: Matikan Combat (Unequip senjata ke Backpack)
+        print("-> Semua boss selesai! Meng-unequip senjata...")
+        local activeChar = player.Character
+        if activeChar then
+            local equippedTool = activeChar:FindFirstChild("Attack")
+            if equippedTool then
+                equippedTool.Parent = player.Backpack
+                print("-> Senjata dikembalikan ke Backpack.")
+            end
         end
-        return nil
-    end)
-    print("✅ Agito dikalahkan!")
-
-    -- 5. FARM TARGET 3: Daguba
-    print("-> Mencari target 3: Daguba...")
-    farmSpecificMob(function()
-        if workspace:FindFirstChild("Mobs") then
-            return workspace.Mobs:FindFirstChild("Daguba")
+        
+        print("-> Menunggu 10 detik sebelum kembali ke desa/NPC...")
+        for i = 1, 10 do
+            if not isRunning then break end
+            task.wait(1)
         end
-        return nil
-    end)
-    print("✅ Daguba dikalahkan!")
+        if not isRunning then break end
 
-    -- 6. SELESAI: Matikan Combat (Unequip senjata ke Backpack)
-    print("-> Semua boss selesai! Meng-unequip senjata...")
-    local activeChar = player.Character
-    if activeChar then
-        local equippedTool = activeChar:FindFirstChild("Attack")
-        if equippedTool then
-            equippedTool.Parent = player.Backpack
-            print("-> Senjata dikembalikan ke Backpack.")
+        -- 7. KEMBALI KE LOKASI AWAL & SELESAIKAN QUEST (DojoStudent)
+        print("-> Teleport ke Koordinat Awal (DojoStudent)...")
+        local freshChar = player.Character or player.CharacterAdded:Wait()
+        local freshHRP = freshChar:WaitForChild("HumanoidRootPart")
+        if freshHRP then
+            freshHRP.CFrame = lokasiPertama * CFrame.new(0, 3, 0)
         end
+        task.wait(1)
+        if not isRunning then break end
+
+        print("-> Menyerahkan quest ke DojoStudent...")
+        triggerNPC("DojoStudent")
+        task.wait(1)
+        if not isRunning then break end
+        
+        dialogueEvent:FireServer(unpack({ { Choice = "Yes, I've completed it." } }))
+        task.wait(1)
+        dialogueEvent:FireServer(unpack({ { Choice = "Can I get another quest?" } }))
+        task.wait(1)
+        dialogueEvent:FireServer(unpack({ { Choice = "Ancient Argument" } }))
+        task.wait(1)
+        dialogueEvent:FireServer(unpack({ { Choice = "Start 'Ancient Argument'" } }))
+        task.wait(1)
+        if not isRunning then break end
+
+        -- 8. KEMBALI KE LOKASI KEDUA & DIALOG SHOICHI
+        print("-> Teleport ke Koordinat Kedua (Shoichi)...")
+        if freshHRP then
+            freshHRP.CFrame = lokasiKedua * CFrame.new(0, 3, 0)
+        end
+        task.wait(1.5)
+        if not isRunning then break end
+
+        print("-> Berinteraksi dengan Shoichi (Sesi 1)...")
+        triggerNPC("Shoichi")
+        task.wait(1)
+        
+        dialogueEvent:FireServer(unpack({ { Choice = "[ Challenge ]" } }))
+        task.wait(0.5)
+        dialogueEvent:FireServer(unpack({ { Choice = "[ Quest ]" } }))
+        task.wait(0.5)
+        dialogueEvent:FireServer(unpack({ { Exit = true } }))
+        task.wait(1)
+        if not isRunning then break end
+
+        print("-> Berinteraksi dengan Shoichi (Sesi 2)...")
+        triggerNPC("Shoichi")
+        task.wait(1)
+        
+        dialogueEvent:FireServer(unpack({ { Choice = "[ Challenge ]" } }))
+        task.wait(0.5)
+        dialogueEvent:FireServer(unpack({ { Choice = "[ Quest ]" } }))
+        task.wait(0.5)
+        dialogueEvent:FireServer(unpack({ { Exit = true } }))
+        task.wait(1.5)
+
+        print("🔄 Siklus selesai! Mengulang kembali dari pembuatan Dungeon Lobby...")
     end
-    
-    print("-> Menunggu 10 detik sebelum kembali ke desa/NPC...")
-    task.wait(10)
-
-    -- 7. KEMBALI KE LOKASI AWAL & SELESAIKAN QUEST (DojoStudent)
-    print("-> Teleport ke Koordinat Awal (DojoStudent)...")
-    local freshChar = player.Character or player.CharacterAdded:Wait()
-    local freshHRP = freshChar:WaitForChild("HumanoidRootPart")
-    if freshHRP then
-        freshHRP.CFrame = lokasiPertama * CFrame.new(0, 3, 0)
-    end
-    task.wait(1)
-
-    print("-> Menyerahkan quest ke DojoStudent...")
-    triggerNPC("DojoStudent")
-    task.wait(1)
-    
-    dialogueEvent:FireServer(unpack({ { Choice = "Yes, I've completed it." } }))
-    task.wait(1)
-    dialogueEvent:FireServer(unpack({ { Choice = "Can I get another quest?" } }))
-    task.wait(1)
-    dialogueEvent:FireServer(unpack({ { Choice = "Ancient Argument" } }))
-    task.wait(1)
-    dialogueEvent:FireServer(unpack({ { Choice = "Start 'Ancient Argument'" } }))
-    task.wait(1)
-
-    -- 8. KEMBALI KE LOKASI KEDUA & DIALOG SHOICHI
-    print("-> Teleport ke Koordinat Kedua (Shoichi)...")
-    if freshHRP then
-        freshHRP.CFrame = lokasiKedua * CFrame.new(0, 3, 0)
-    end
-    task.wait(1.5)
-
-    print("-> Berinteraksi dengan Shoichi (Sesi 1)...")
-    triggerNPC("Shoichi")
-    task.wait(1)
-    
-    dialogueEvent:FireServer(unpack({ { Choice = "[ Challenge ]" } }))
-    task.wait(0.5)
-    dialogueEvent:FireServer(unpack({ { Choice = "[ Quest ]" } }))
-    task.wait(0.5)
-    dialogueEvent:FireServer(unpack({ { Exit = true } }))
-    task.wait(1)
-
-    print("-> Berinteraksi dengan Shoichi (Sesi 2)...")
-    triggerNPC("Shoichi")
-    task.wait(1)
-    
-    dialogueEvent:FireServer(unpack({ { Choice = "[ Challenge ]" } }))
-    task.wait(0.5)
-    dialogueEvent:FireServer(unpack({ { Choice = "[ Quest ]" } }))
-    task.wait(0.5)
-    dialogueEvent:FireServer(unpack({ { Exit = true } }))
-    task.wait(1.5)
-
-    print("🔄 Siklus selesai! Mengulang kembali dari pembuatan Dungeon Lobby...")
+    print("🛑 Script dihentikan oleh pengguna.")
 end
+
+-- ==========================================
+-- EVENT KETIKA TOMBOL GUI DI-KLIK
+-- ==========================================
+toggleButton.MouseButton1Click:Connect(function()
+    isRunning = not isRunning
+    if isRunning then
+        toggleButton.Text = "Status: ON [Click]"
+        toggleButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50) -- Hijau
+        -- Jalankan mainLoop di background menggunakan task.spawn agar GUI tidak nge-freeze
+        task.spawn(mainLoop)
+    else
+        toggleButton.Text = "Status: OFF [Click]"
+        toggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50) -- Merah
+        -- Ketika di-OFF-kan, variabel isRunning akan bernilai false, 
+        -- dan loop/magnet akan otomatis berhenti dalam beberapa detik berikutnya.
+    end
+end)
