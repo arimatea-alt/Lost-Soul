@@ -121,7 +121,7 @@ closeButton.BackgroundColor3 = colorCloseN
 closeButton.Position = UDim2.new(1, -30, 0, 9)
 closeButton.Size = UDim2.new(0, 20, 0, 20)
 closeButton.Font = Enum.Font.SourceSansBold
-closeButton.Text = "X" -- Diganti ke huruf X standar agar tidak error
+closeButton.Text = "X"
 closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 closeButton.TextSize = 14
 closeButton.AutoButtonColor = false
@@ -139,7 +139,7 @@ minButton.BackgroundColor3 = colorMinN
 minButton.Position = UDim2.new(1, -56, 0, 9)
 minButton.Size = UDim2.new(0, 20, 0, 20)
 minButton.Font = Enum.Font.SourceSansBold
-minButton.Text = "-" -- Diganti ke minus standar
+minButton.Text = "-"
 minButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 minButton.TextSize = 18
 minButton.AutoButtonColor = false
@@ -352,23 +352,38 @@ local function alurAwalSetup()
 end
 
 -- ==========================================
--- FUNGSI FARMING TARGET DENGAN AUTO-SPAWN WAIT
+-- FUNGSI FARMING TARGET DENGAN TIMEOUT
 -- ==========================================
-local function farmSpecificMob(getMobFunction, mobName)
+-- Penambahan parameter `timeout` (dalam detik) agar tidak stuck selamanya
+local function farmSpecificMob(getMobFunction, mobName, timeout)
     statusSub.Text = "Status: Menunggu " .. mobName .. "..."
     
     local targetMob = nil
+    local timeWaited = 0
+    local isFound = false
+
+    -- Looping pengecekan target
     while isRunning and task.wait(0.2) do
         targetMob = getMobFunction()
         if targetMob and targetMob:FindFirstChild("RootPart") then
             local hum = targetMob:FindFirstChild("Humanoid")
             if not hum or hum.Health > 0 then
+                isFound = true
                 break
+            end
+        end
+        
+        -- Fitur Timeout khusus untuk mob opsional
+        if timeout then
+            timeWaited = timeWaited + 0.2
+            if timeWaited >= timeout then
+                print("⏭️ " .. mobName .. " tidak ditemukan, SKIP!")
+                return -- Keluar dari fungsi dan lanjut ke script di bawahnya
             end
         end
     end
     
-    if not isRunning then return end
+    if not isRunning or not isFound then return end
     statusSub.Text = "Status: Farming " .. mobName .. " ⚔️"
 
     local isTargetActive = true
@@ -508,31 +523,28 @@ local function mainLoop()
             currentCharacter:WaitForChild("Humanoid"):EquipTool(attackTool)
         end
 
-        -- 1. KUGHA
+        -- 1. KUGHA (Wajib, tanpa timeout)
         if not isRunning then break end
         farmSpecificMob(function()
             if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Kugha") end
             return nil
         end, "Kugha")
 
-        -- 2. FLYING XUGO
+        -- 2. FLYING XUGO (Opsional, Timeout 3 detik)
         if not isRunning then break end
-        task.wait(2) 
-        if workspace:FindFirstChild("Mobs") and workspace.Mobs:FindFirstChild("FlyingXugo") then
-            farmSpecificMob(function()
-                if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("FlyingXugo") end
-                return nil
-            end, "FlyingXugo")
-        end
+        farmSpecificMob(function()
+            if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("FlyingXugo") end
+            return nil
+        end, "FlyingXugo", 3)
 
-        -- 3. AGITO
+        -- 3. AGITO (Wajib, tanpa timeout)
         if not isRunning then break end
         farmSpecificMob(function()
             if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Agito") end
             return nil
         end, "Agito")
 
-        -- 4. DAGUBA
+        -- 4. DAGUBA (Wajib, tanpa timeout)
         if not isRunning then break end
         farmSpecificMob(function()
             if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Daguba") end
