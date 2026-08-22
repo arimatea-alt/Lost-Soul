@@ -22,7 +22,7 @@ local lokasiPertama = CFrame.new(-1170, 2, -565)
 local lokasiKedua = CFrame.new(-3441, -2, -3178)
 
 -- ==========================================
--- PEMBUATAN GUI (MEDIEVAL / FANTASY THEME)
+-- PEMBUATAN GUI (MODERN & CLEAN THEME)
 -- ==========================================
 if CoreGui:FindFirstChild("AutoQuestGUI") then
     CoreGui.AutoQuestGUI:Destroy()
@@ -33,23 +33,22 @@ screenGui.Name = "AutoQuestGUI"
 screenGui.Parent = CoreGui
 screenGui.ResetOnSpawn = false
 
--- Panel Utama (Tema Kayu Tua / Kulit Kuno)
+-- Panel Utama (Dark Mode Modern)
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
 mainFrame.Parent = screenGui
-mainFrame.BackgroundColor3 = Color3.fromRGB(36, 28, 22) -- Warna Kayu Gelap
+mainFrame.BackgroundColor3 = Color3.fromRGB(24, 24, 27) -- Zinc 900
 mainFrame.Position = UDim2.new(0.05, 0, 0.1, 0)
-mainFrame.Size = UDim2.new(0, 250, 0, 160)
+mainFrame.Size = UDim2.new(0, 240, 0, 150)
 mainFrame.BorderSizePixel = 0
 
 local cornerMain = Instance.new("UICorner")
 cornerMain.CornerRadius = UDim.new(0, 8)
 cornerMain.Parent = mainFrame
 
--- Bingkai Emas / Perunggu Kuno (UIStroke)
 local strokeMain = Instance.new("UIStroke")
-strokeMain.Color = Color3.fromRGB(197, 160, 89) -- Warna Emas Antik
-strokeMain.Thickness = 2.5
+strokeMain.Color = Color3.fromRGB(63, 63, 70) -- Zinc 700
+strokeMain.Thickness = 1
 strokeMain.Parent = mainFrame
 
 -- Drop Shadow
@@ -62,155 +61,152 @@ shadow.Size = UDim2.new(1, 30, 1, 30)
 shadow.ZIndex = -1
 shadow.Image = "rbxassetid://5554236805"
 shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-shadow.ImageTransparency = 0.4
+shadow.ImageTransparency = 0.6
 shadow.ScaleType = Enum.ScaleType.Slice
 shadow.SliceCenter = Rect.new(23, 23, 277, 277)
 
--- Top Bar (Header Medieval)
+-- Top Bar
 local topBar = Instance.new("Frame")
 topBar.Name = "TopBar"
 topBar.Parent = mainFrame
-topBar.BackgroundColor3 = Color3.fromRGB(48, 38, 30)
-topBar.Size = UDim2.new(1, 0, 0, 40)
+topBar.BackgroundColor3 = Color3.fromRGB(39, 39, 42) -- Zinc 800
+topBar.Size = UDim2.new(1, 0, 0, 36)
 topBar.BorderSizePixel = 0
 
 local cornerTop = Instance.new("UICorner")
 cornerTop.CornerRadius = UDim.new(0, 8)
 cornerTop.Parent = topBar
+
+-- Memotong sudut bawah TopBar
 local fixTopBar = Instance.new("Frame")
 fixTopBar.Parent = topBar
-fixTopBar.BackgroundColor3 = Color3.fromRGB(48, 38, 30)
+fixTopBar.BackgroundColor3 = Color3.fromRGB(39, 39, 42)
 fixTopBar.Position = UDim2.new(0, 0, 0.5, 0)
 fixTopBar.Size = UDim2.new(1, 0, 0.5, 0)
 fixTopBar.BorderSizePixel = 0
 
--- Garis Pembatas Emas di Bawah TopBar
 local line = Instance.new("Frame")
 line.Parent = topBar
-line.BackgroundColor3 = Color3.fromRGB(197, 160, 89)
+line.BackgroundColor3 = Color3.fromRGB(63, 63, 70)
 line.BorderSizePixel = 0
 line.Position = UDim2.new(0, 0, 1, 0)
-line.Size = UDim2.new(1, 0, 0, 2)
+line.Size = UDim2.new(1, 0, 0, 1)
 
 local titleLabel = Instance.new("TextLabel")
 titleLabel.Parent = topBar
 titleLabel.BackgroundTransparency = 1
 titleLabel.Position = UDim2.new(0, 12, 0, 0)
-titleLabel.Size = UDim2.new(0, 150, 1, 0)
-titleLabel.Font = Enum.Font.SourceSansBold
-titleLabel.Text = "⚔️ LOST SOUL ⚔️"
-titleLabel.TextColor3 = Color3.fromRGB(245, 222, 179) -- Warna Krem Parchment
-titleLabel.TextSize = 15
+titleLabel.Size = UDim2.new(0, 120, 1, 0)
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.Text = "LOST SOUL"
+titleLabel.TextColor3 = Color3.fromRGB(244, 244, 245) -- Zinc 100
+titleLabel.TextSize = 13
 titleLabel.TextXAlignment = Enum.TextXAlignment.Left
 
 -- Helper Animasi Tombol
 local function createButtonAnim(btn, normalColor, hoverColor)
     btn.MouseEnter:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = hoverColor}):Play()
+        TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = hoverColor}):Play()
     end)
     btn.MouseLeave:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = normalColor}):Play()
+        TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = normalColor}):Play()
     end)
 end
 
--- Tombol Close (X) - Warna Permata Merah Delima
-local colorCloseN = Color3.fromRGB(150, 40, 40)
-local colorCloseH = Color3.fromRGB(200, 60, 60)
+-- Tombol Close (X)
+local colorCloseN = Color3.fromRGB(239, 68, 68) -- Red 500
+local colorCloseH = Color3.fromRGB(248, 113, 113) -- Red 400
 local closeButton = Instance.new("TextButton")
 closeButton.Parent = topBar
 closeButton.BackgroundColor3 = colorCloseN
-closeButton.Position = UDim2.new(1, -32, 0, 10)
+closeButton.Position = UDim2.new(1, -30, 0, 8)
 closeButton.Size = UDim2.new(0, 20, 0, 20)
-closeButton.Font = Enum.Font.SourceSansBold
+closeButton.Font = Enum.Font.GothamBold
 closeButton.Text = "X"
 closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeButton.TextSize = 13
+closeButton.TextSize = 11
 closeButton.AutoButtonColor = false
 local cornerClose = Instance.new("UICorner")
 cornerClose.CornerRadius = UDim.new(1, 0)
 cornerClose.Parent = closeButton
 createButtonAnim(closeButton, colorCloseN, colorCloseH)
 
--- Tombol Minimize (-) - Warna Permata Amber/Kuning
-local colorMinN = Color3.fromRGB(180, 130, 30)
-local colorMinH = Color3.fromRGB(230, 170, 40)
+-- Tombol Minimize (-)
+local colorMinN = Color3.fromRGB(245, 158, 11) -- Amber 500
+local colorMinH = Color3.fromRGB(251, 191, 36) -- Amber 400
 local minButton = Instance.new("TextButton")
 minButton.Parent = topBar
 minButton.BackgroundColor3 = colorMinN
-minButton.Position = UDim2.new(1, -58, 0, 10)
+minButton.Position = UDim2.new(1, -56, 0, 8)
 minButton.Size = UDim2.new(0, 20, 0, 20)
-minButton.Font = Enum.Font.SourceSansBold
+minButton.Font = Enum.Font.GothamBold
 minButton.Text = "-"
 minButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-minButton.TextSize = 16
+minButton.TextSize = 14
 minButton.AutoButtonColor = false
 local cornerMin = Instance.new("UICorner")
 cornerMin.CornerRadius = UDim.new(1, 0)
 cornerMin.Parent = minButton
 createButtonAnim(minButton, colorMinN, colorMinH)
 
--- Warna Status Toggle (Merah Karat vs Hijau Hutan)
-local colorOff = Color3.fromRGB(139, 0, 0)
-local colorOn = Color3.fromRGB(34, 112, 53)
+-- Warna Status Toggle
+local colorOff = Color3.fromRGB(239, 68, 68) -- Red 500
+local colorOn = Color3.fromRGB(16, 185, 129) -- Emerald 500
 
--- Tombol Toggle ON/OFF (Gaya Perisai/Tombol Kayu)
+-- Tombol Toggle ON/OFF
 local toggleButton = Instance.new("TextButton")
 toggleButton.Name = "ToggleButton"
 toggleButton.Parent = mainFrame
 toggleButton.BackgroundColor3 = colorOff
-toggleButton.Position = UDim2.new(0.5, -100, 0, 52)
-toggleButton.Size = UDim2.new(0, 200, 0, 50)
-toggleButton.Font = Enum.Font.SourceSansBold
+toggleButton.Position = UDim2.new(0.5, -95, 0, 56)
+toggleButton.Size = UDim2.new(0, 190, 0, 42)
+toggleButton.Font = Enum.Font.GothamBold
 toggleButton.Text = "START FARMING"
-toggleButton.TextColor3 = Color3.fromRGB(245, 222, 179)
-toggleButton.TextSize = 16
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.TextSize = 13
 toggleButton.AutoButtonColor = false
 local cornerToggle = Instance.new("UICorner")
 cornerToggle.CornerRadius = UDim.new(0, 6)
 cornerToggle.Parent = toggleButton
-local strokeToggle = Instance.new("UIStroke")
-strokeToggle.Color = Color3.fromRGB(197, 160, 89)
-strokeToggle.Thickness = 1.5
-strokeToggle.Parent = toggleButton
 
--- Status Sub-text (Gaya Tulisan Gulungan Kuno)
+-- Status Sub-text
 local statusSub = Instance.new("TextLabel")
 statusSub.Parent = mainFrame
 statusSub.BackgroundTransparency = 1
-statusSub.Position = UDim2.new(0, 0, 0, 115)
-statusSub.Size = UDim2.new(1, 0, 0, 25)
-statusSub.Font = Enum.Font.SourceSansItalic
-statusSub.Text = "Quest: Idle (Awaiting Orders)"
-statusSub.TextColor3 = Color3.fromRGB(210, 190, 160)
-statusSub.TextSize = 13
+statusSub.Position = UDim2.new(0, 0, 0, 110)
+statusSub.Size = UDim2.new(1, 0, 0, 20)
+statusSub.Font = Enum.Font.Gotham
+statusSub.Text = "Status: IDLE"
+statusSub.TextColor3 = Color3.fromRGB(161, 161, 170) -- Zinc 400
+statusSub.TextSize = 12
 
--- Tombol Bulat Minimized (Gaya Perisai Kecil)
+-- Tombol Bulat Minimized (Floating Bubble)
 local minBubble = Instance.new("TextButton")
 minBubble.Name = "MinimizedBubble"
 minBubble.Parent = screenGui
-minBubble.BackgroundColor3 = Color3.fromRGB(48, 38, 30)
+minBubble.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
 minBubble.Position = UDim2.new(0.05, 0, 0.1, 0)
-minBubble.Size = UDim2.new(0, 52, 0, 52)
-minBubble.Font = Enum.Font.SourceSansBold
-minBubble.Text = "🛡️"
-minBubble.TextColor3 = Color3.fromRGB(197, 160, 89)
-minBubble.TextSize = 22
+minBubble.Size = UDim2.new(0, 44, 0, 44)
+minBubble.Font = Enum.Font.GothamBold
+minBubble.Text = "⚡"
+minBubble.TextColor3 = Color3.fromRGB(244, 244, 245)
+minBubble.TextSize = 20
 minBubble.Visible = false
 local cornerBubble = Instance.new("UICorner")
 cornerBubble.CornerRadius = UDim.new(1, 0)
 cornerBubble.Parent = minBubble
 local strokeBubble = Instance.new("UIStroke")
-strokeBubble.Color = Color3.fromRGB(197, 160, 89)
-strokeBubble.Thickness = 2
+strokeBubble.Color = Color3.fromRGB(63, 63, 70)
+strokeBubble.Thickness = 1.5
 strokeBubble.Parent = minBubble
 
 local isRunning = false
 
 -- ==========================================
--- CUSTOM SMOOTH DRAGGING SYSTEM
+-- CUSTOM SMOOTH DRAGGING SYSTEM (BUG FIX)
 -- ==========================================
+-- 1. Dragging untuk Main Frame
 local dragging, dragInput, dragStart, startPos
-
 topBar.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
@@ -237,15 +233,29 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
+-- 2. Dragging & Click Fix untuk Minimized Bubble
 local draggingBubble, dragInputBubble, dragStartBubble, startPosBubble
+local isActuallyDraggingBubble = false
+
 minBubble.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         draggingBubble = true
+        isActuallyDraggingBubble = false
         dragStartBubble = input.Position
         startPosBubble = minBubble.Position
-        input.Changed:Connect(function()
+        
+        local con
+        con = input.Changed:Connect(function()
             if input.UserInputState == Enum.UserInputState.End then
                 draggingBubble = false
+                con:Disconnect()
+                
+                -- LOGIKA PENTING: Jika tidak digeser (hanya diklik), baru menu dibuka!
+                if not isActuallyDraggingBubble then
+                    mainFrame.Position = minBubble.Position
+                    minBubble.Visible = false
+                    mainFrame.Visible = true
+                end
             end
         end)
     end
@@ -260,7 +270,15 @@ end)
 UserInputService.InputChanged:Connect(function(input)
     if input == dragInputBubble and draggingBubble then
         local delta = input.Position - dragStartBubble
-        minBubble.Position = UDim2.new(startPosBubble.X.Scale, startPosBubble.X.Offset + delta.X, startPosBubble.Y.Scale, startPosBubble.Y.Offset + delta.Y)
+        
+        -- Jika mouse/jari bergerak lebih dari 5 pixel, hitung sebagai "DRAG", bukan "KLIK"
+        if math.abs(delta.X) > 5 or math.abs(delta.Y) > 5 then
+            isActuallyDraggingBubble = true
+        end
+        
+        if isActuallyDraggingBubble then
+            minBubble.Position = UDim2.new(startPosBubble.X.Scale, startPosBubble.X.Offset + delta.X, startPosBubble.Y.Scale, startPosBubble.Y.Offset + delta.Y)
+        end
     end
 end)
 
@@ -277,12 +295,7 @@ minButton.MouseButton1Click:Connect(function()
     mainFrame.Visible = false
     minBubble.Visible = true
 end)
-
-minBubble.MouseButton1Click:Connect(function()
-    mainFrame.Position = minBubble.Position
-    minBubble.Visible = false
-    mainFrame.Visible = true
-end)
+-- (Catatan: Event Click untuk minBubble sekarang ditangani di dalam InputBegan di atas agar tidak bentrok dengan drag)
 
 -- ==========================================
 -- FUNGSI BANTUAN DIALOG & PROXIMITY
@@ -303,7 +316,7 @@ end
 -- ==========================================
 local function alurAwalSetup()
     if not isRunning then return end
-    statusSub.Text = "Quest: Mengambil Quest..."
+    statusSub.Text = "Status: Mengambil Quest..."
     
     local character = player.Character or player.CharacterAdded:Wait()
     local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
@@ -345,10 +358,10 @@ local function alurAwalSetup()
 end
 
 -- ==========================================
--- FUNGSI FARMING TARGET DENGAN TIMEOUT
+-- FUNGSI FARMING TARGET DENGAN TIMEOUT PINTAR
 -- ==========================================
 local function farmSpecificMob(getMobFunction, mobName, timeout)
-    statusSub.Text = "Mencari: " .. mobName
+    statusSub.Text = "Status: Scan " .. mobName .. "..."
     
     local targetMob = nil
     local timeWaited = 0
@@ -367,13 +380,14 @@ local function farmSpecificMob(getMobFunction, mobName, timeout)
         if timeout then
             timeWaited = timeWaited + 0.2
             if timeWaited >= timeout then
-                return
+                statusSub.Text = mobName .. " di-Skip!"
+                return -- Keluar fungsi jika kelamaan nunggu boss spawn (Timeout)
             end
         end
     end
     
     if not isRunning or not isFound then return end
-    statusSub.Text = "Pertempuran: " .. mobName
+    statusSub.Text = "Status: Farming " .. mobName .. " ⚔️"
 
     local isTargetActive = true
     
@@ -490,7 +504,7 @@ local function mainLoop()
     alurAwalSetup()
 
     while isRunning do
-        statusSub.Text = "Dungeon: Membuka Gerbang..."
+        statusSub.Text = "Status: Membuat Lobby..."
         
         if not isRunning then break end
         lobbyAction:InvokeServer(unpack({ "create", "public", "trial", "AncientWorld", 2, 1 }))
@@ -519,9 +533,9 @@ local function mainLoop()
             return nil
         end, "Kugha")
 
-        -- 2. FLYING XUGO (Opsional)
+        -- 2. FLYING XUGO (Opsional, Timeout 3 detik)
         if not isRunning then break end
-        task.wait(2) 
+        task.wait(1.5) 
         if workspace:FindFirstChild("Mobs") and workspace.Mobs:FindFirstChild("FlyingXugo") then
             farmSpecificMob(function()
                 if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("FlyingXugo") end
@@ -544,7 +558,7 @@ local function mainLoop()
         end, "Daguba")
 
         -- SELESAI DUNGEON
-        statusSub.Text = "Dungeon Selesai! Istirahat..."
+        statusSub.Text = "Status: Dungeon Selesai!"
         local activeChar = player.Character
         if activeChar then
             local equippedTool = activeChar:FindFirstChild("Attack")
@@ -553,13 +567,13 @@ local function mainLoop()
         
         for i = 1, 10 do
             if not isRunning then break end
-            statusSub.Text = "Istirahat: " .. (11 - i) .. "s"
+            statusSub.Text = "Status: Istirahat " .. (11 - i) .. "s"
             task.wait(1)
         end
         if not isRunning then break end
 
         -- 7. KEMBALI KE LOKASI AWAL (DojoStudent)
-        statusSub.Text = "Melaporkan ke Dojo..."
+        statusSub.Text = "Status: Turn-in Quest..."
         local freshChar = player.Character or player.CharacterAdded:Wait()
         local freshHRP = freshChar:WaitForChild("HumanoidRootPart")
         if freshHRP then freshHRP.CFrame = lokasiPertama * CFrame.new(0, 3, 0) end
@@ -613,11 +627,11 @@ toggleButton.MouseButton1Click:Connect(function()
     isRunning = not isRunning
     if isRunning then
         toggleButton.Text = "STOP FARMING"
-        toggleButton.BackgroundColor3 = colorOn
+        TweenService:Create(toggleButton, TweenInfo.new(0.2), {BackgroundColor3 = colorOn}):Play()
         task.spawn(mainLoop)
     else
         toggleButton.Text = "START FARMING"
-        toggleButton.BackgroundColor3 = colorOff
-        statusSub.Text = "Quest: Dihentikan"
+        TweenService:Create(toggleButton, TweenInfo.new(0.2), {BackgroundColor3 = colorOff}):Play()
+        statusSub.Text = "Status: Dihentikan"
     end
 end)
