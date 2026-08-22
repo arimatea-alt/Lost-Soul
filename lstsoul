@@ -5,6 +5,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local CoreGui = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
 
@@ -20,7 +21,7 @@ local lokasiPertama = CFrame.new(-1170, 2, -565)
 local lokasiKedua = CFrame.new(-3441, -2, -3178)
 
 -- ==========================================
--- PEMBUATAN GUI (JENDELA UTAMA & BUBBLE)
+-- PEMBUATAN GUI (MODERN & SLEEK DESIGN)
 -- ==========================================
 if CoreGui:FindFirstChild("AutoQuestGUI") then
     CoreGui.AutoQuestGUI:Destroy()
@@ -29,55 +30,67 @@ end
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "AutoQuestGUI"
 screenGui.Parent = CoreGui
+screenGui.ResetOnSpawn = false
 
 -- Panel Utama (Jendela Luar)
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
 mainFrame.Parent = screenGui
-mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 24)
 mainFrame.Position = UDim2.new(0.05, 0, 0.1, 0)
-mainFrame.Size = UDim2.new(0, 200, 0, 125)
-mainFrame.Active = true
-mainFrame.Draggable = true
+mainFrame.Size = UDim2.new(0, 220, 0, 140)
+mainFrame.BorderSizePixel = 0
 
 local cornerMain = Instance.new("UICorner")
-cornerMain.CornerRadius = UDim.new(0, 8)
+cornerMain.CornerRadius = UDim.new(0, 10)
 cornerMain.Parent = mainFrame
 
--- Top Bar (Header untuk Dragging & Tombol Kontrol)
+local strokeMain = Instance.new("UIStroke")
+strokeMain.Color = Color3.fromRGB(45, 45, 55)
+strokeMain.Thickness = 1.5
+strokeMain.Parent = mainFrame
+
+-- Top Bar (Header Modern)
 local topBar = Instance.new("Frame")
 topBar.Name = "TopBar"
 topBar.Parent = mainFrame
-topBar.BackgroundColor3 = Color3.fromRGB(45, 45, 52)
-topBar.Size = UDim2.new(1, 0, 0, 32)
-topBar.Active = true
-topBar.Draggable = true
+topBar.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
+topBar.Size = UDim2.new(1, 0, 0, 36)
+topBar.BorderSizePixel = 0
 
 local cornerTop = Instance.new("UICorner")
-cornerTop.CornerRadius = UDim.new(0, 8)
+cornerTop.CornerRadius = UDim.new(0, 10)
 cornerTop.Parent = topBar
+
+-- Memotong sudut bawah TopBar agar tetap kotak dan menyatu dengan MainFrame
+local fixTopBar = Instance.new("Frame")
+fixTopBar.Parent = topBar
+fixTopBar.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
+fixTopBar.Position = UDim2.new(0, 0, 0.5, 0)
+fixTopBar.Size = UDim2.new(1, 0, 0.5, 0)
+fixTopBar.BorderSizePixel = 0
 
 local titleLabel = Instance.new("TextLabel")
 titleLabel.Parent = topBar
 titleLabel.BackgroundTransparency = 1
-titleLabel.Position = UDim2.new(0, 10, 0, 0)
-titleLabel.Size = UDim2.new(0, 110, 1, 0)
-titleLabel.Font = Enum.Font.SourceSansBold
-titleLabel.Text = "Lost Soul Auto"
-titleLabel.TextColor3 = Color3.fromRGB(240, 240, 240)
-titleLabel.TextSize = 14
+titleLabel.Position = UDim2.new(0, 12, 0, 0)
+titleLabel.Size = UDim2.new(0, 120, 1, 0)
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.Text = "⚡ Lost Soul UI"
+titleLabel.TextColor3 = Color3.fromRGB(230, 230, 240)
+titleLabel.TextSize = 13
 titleLabel.TextXAlignment = Enum.TextXAlignment.Left
 
 -- Tombol Close (X)
 local closeButton = Instance.new("TextButton")
 closeButton.Parent = topBar
-closeButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-closeButton.Position = UDim2.new(1, -28, 0, 6)
+closeButton.BackgroundColor3 = Color3.fromRGB(235, 77, 75)
+closeButton.Position = UDim2.new(1, -30, 0, 8)
 closeButton.Size = UDim2.new(0, 20, 0, 20)
-closeButton.Font = Enum.Font.SourceSansBold
-closeButton.Text = "X"
+closeButton.Font = Enum.Font.GothamBold
+closeButton.Text = "✕"
 closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeButton.TextSize = 12
+closeButton.TextSize = 10
 local cornerClose = Instance.new("UICorner")
 cornerClose.CornerRadius = UDim.new(1, 0)
 cornerClose.Parent = closeButton
@@ -85,13 +98,13 @@ cornerClose.Parent = closeButton
 -- Tombol Minimize (-)
 local minButton = Instance.new("TextButton")
 minButton.Parent = topBar
-minButton.BackgroundColor3 = Color3.fromRGB(200, 150, 50)
-minButton.Position = UDim2.new(1, -54, 0, 6)
+minButton.BackgroundColor3 = Color3.fromRGB(241, 196, 15)
+minButton.Position = UDim2.new(1, -56, 0, 8)
 minButton.Size = UDim2.new(0, 20, 0, 20)
-minButton.Font = Enum.Font.SourceSansBold
+minButton.Font = Enum.Font.GothamBold
 minButton.Text = "-"
 minButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-minButton.TextSize = 12
+minButton.TextSize = 11
 local cornerMin = Instance.new("UICorner")
 cornerMin.CornerRadius = UDim.new(1, 0)
 cornerMin.Parent = minButton
@@ -101,35 +114,110 @@ local toggleButton = Instance.new("TextButton")
 toggleButton.Name = "ToggleButton"
 toggleButton.Parent = mainFrame
 toggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50) -- Merah (OFF)
-toggleButton.Position = UDim2.new(0.5, -80, 0, 48)
-toggleButton.Size = UDim2.new(0, 160, 0, 45)
-toggleButton.Font = Enum.Font.SourceSansBold
-toggleButton.Text = "Status: OFF [Click]"
+toggleButton.Position = UDim2.new(0.5, -90, 0, 52)
+toggleButton.Size = UDim2.new(0, 180, 0, 48)
+toggleButton.Font = Enum.Font.GothamBold
+toggleButton.Text = "STATUS: OFF"
 toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-toggleButton.TextSize = 15
+toggleButton.TextSize = 14
 local cornerToggle = Instance.new("UICorner")
-cornerToggle.CornerRadius = UDim.new(0, 6)
+cornerToggle.CornerRadius = UDim.new(0, 8)
 cornerToggle.Parent = toggleButton
+
+-- Status Indicator text kecil di bawah tombol
+local statusSub = Instance.new("TextLabel")
+statusSub.Parent = mainFrame
+statusSub.BackgroundTransparency = 1
+statusSub.Position = UDim2.new(0, 0, 0, 108)
+statusSub.Size = UDim2.new(1, 0, 0, 20)
+statusSub.Font = Enum.Font.Gotham
+statusSub.Text = "Auto-Farm & Dungeon Ready"
+statusSub.TextColor3 = Color3.fromRGB(120, 120, 140)
+statusSub.TextSize = 10
 
 -- Tombol Bulat Minimized (Floating Bubble)
 local minBubble = Instance.new("TextButton")
 minBubble.Name = "MinimizedBubble"
 minBubble.Parent = screenGui
-minBubble.BackgroundColor3 = Color3.fromRGB(45, 45, 52)
+minBubble.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
 minBubble.Position = UDim2.new(0.05, 0, 0.1, 0)
-minBubble.Size = UDim2.new(0, 45, 0, 45)
-minBubble.Font = Enum.Font.SourceSansBold
+minBubble.Size = UDim2.new(0, 48, 0, 48)
+minBubble.Font = Enum.Font.GothamBold
 minBubble.Text = "LS"
 minBubble.TextColor3 = Color3.fromRGB(255, 255, 255)
-minBubble.TextSize = 14
+minBubble.TextSize = 15
 minBubble.Visible = false
-minBubble.Active = true
-minBubble.Draggable = true
 local cornerBubble = Instance.new("UICorner")
 cornerBubble.CornerRadius = UDim.new(1, 0)
 cornerBubble.Parent = minBubble
+local strokeBubble = Instance.new("UIStroke")
+strokeBubble.Color = Color3.fromRGB(80, 80, 100)
+strokeBubble.Thickness = 1.5
+strokeBubble.Parent = minBubble
 
 local isRunning = false
+
+-- ==========================================
+-- CUSTOM SMOOTH DRAGGING SYSTEM (FIX BUG)
+-- ==========================================
+local dragging, dragInput, dragStart, startPos
+
+topBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+topBar.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+-- Dragging untuk Bubble saat Minimized
+local draggingBubble, dragInputBubble, dragStartBubble, startPosBubble
+
+minBubble.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        draggingBubble = true
+        dragStartBubble = input.Position
+        startPosBubble = minBubble.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                draggingBubble = false
+            end
+        end)
+    end
+end)
+
+minBubble.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInputBubble = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInputBubble and draggingBubble then
+        local delta = input.Position - dragStartBubble
+        minBubble.Position = UDim2.new(startPosBubble.X.Scale, startPosBubble.X.Offset + delta.X, startPosBubble.Y.Scale, startPosBubble.Y.Offset + delta.Y)
+    end
+end)
 
 -- ==========================================
 -- FUNGSI KONTROL GUI (CLOSE & MINIMIZE)
@@ -175,19 +263,16 @@ local function alurAwalSetup()
     local character = player.Character or player.CharacterAdded:Wait()
     local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
-    -- 1. Teleport ke DojoStudent
     if humanoidRootPart then
         humanoidRootPart.CFrame = lokasiPertama * CFrame.new(0, 3, 0)
     end
     task.wait(1)
     
     if not isRunning then return end
-    -- 2. Trigger DojoStudent
     triggerNPC("DojoStudent")
     task.wait(1)
     
     if not isRunning then return end
-    -- 3. Dialog Ambil Quest Awal
     dialogueEvent:FireServer(unpack({ { Choice = "Sure.." } }))
     task.wait(0.5)
     dialogueEvent:FireServer(unpack({ { Choice = "Ancient Argument" } }))
@@ -196,7 +281,6 @@ local function alurAwalSetup()
     task.wait(1)
     
     if not isRunning then return end
-    -- 4. Teleport ke Shoichi
     local currentCharacter = player.Character or player.CharacterAdded:Wait()
     local currentHRP = currentCharacter:WaitForChild("HumanoidRootPart")
     if currentHRP then
@@ -205,7 +289,6 @@ local function alurAwalSetup()
     task.wait(1.5)
     
     if not isRunning then return end
-    -- 5. Trigger Shoichi & Query Lobby
     triggerNPC("Shoichi")
     task.wait(1)
     dungeonQuery:InvokeServer(unpack({ "lobbies" }))
@@ -222,7 +305,6 @@ end
 local function farmSpecificMob(getMobFunction)
     print("⏳ Menunggu target spawn...")
     
-    -- 1. MENUNGGU TARGET MUNCUL DI WORKSPACE
     local targetMob = nil
     while isRunning and task.wait(0.2) do
         targetMob = getMobFunction()
@@ -239,7 +321,6 @@ local function farmSpecificMob(getMobFunction)
 
     local isTargetActive = true
     
-    -- 2. Sistem Magnet ke RootPart Target secara Real-time
     local magnetConnection
     magnetConnection = RunService.Heartbeat:Connect(function()
         if not isTargetActive or not isRunning then return end
@@ -266,7 +347,6 @@ local function farmSpecificMob(getMobFunction)
         end
     end)
 
-    -- 3. THREAD TERPISAH: SPAM ULTIMATE TANPA COOLDOWN / ANIMASI
     task.spawn(function()
         while isTargetActive and isRunning do
             local characterRef = player.Character
@@ -288,7 +368,6 @@ local function farmSpecificMob(getMobFunction)
         end
     end)
 
-    -- 4. Loop Kombo Combat Utama (Heavy & Skill 1/2)
     local lastSkill1Time = 0 
     local lastSkill2Time = 0 
     
@@ -301,12 +380,10 @@ local function farmSpecificMob(getMobFunction)
             local targetRoot = currentMob.RootPart
             local aimCFrame = targetRoot.CFrame 
 
-            -- Heavy Attack 1
             playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
             task.wait(2)
             if not isTargetActive or not isRunning then break end
 
-            -- Skill 1 (Key E - CD 10 Detik)
             if tick() - lastSkill1Time >= 10 then
                 playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "E", MouseData = aimCFrame } }))
                 task.wait(5)
@@ -317,17 +394,14 @@ local function farmSpecificMob(getMobFunction)
             end
             if not isTargetActive or not isRunning then break end
 
-            -- Heavy Attack 2
             playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
             task.wait(2)
             if not isTargetActive or not isRunning then break end
 
-            -- Basic Attack
             playerHandler:FireServer(unpack({ { CombatAction = true, LightAttack = true, MouseData = aimCFrame } }))
             task.wait(0.2)
             if not isTargetActive or not isRunning then break end
 
-            -- Skill 2 (Key R - CD 15 Detik)
             if tick() - lastSkill2Time >= 15 then
                 playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "R", MouseData = aimCFrame } }))
                 task.wait(2.5)
@@ -338,7 +412,6 @@ local function farmSpecificMob(getMobFunction)
             end
             if not isTargetActive or not isRunning then break end
 
-            -- Heavy Attack 3
             playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
             task.wait(2)
             if not isTargetActive or not isRunning then break end
@@ -360,15 +433,12 @@ end
 local function mainLoop()
     print("=== MEMULAI SCRIPT AUTO-QUEST & DUNGEON ===")
     
-    -- Jalankan setup awal sekali
     alurAwalSetup()
 
-    -- Loop Utama Berkelanjutan
     while isRunning do
         print("[Loop] Membuat dan Memulai Dungeon Lobby...")
         
         if not isRunning then break end
-        -- 1. Buat & Start Lobby
         lobbyAction:InvokeServer(unpack({ "create", "public", "trial", "AncientWorld", 2, 1 }))
         task.wait(1)
         if not isRunning then break end
@@ -380,7 +450,6 @@ local function mainLoop()
         dungeonSession:FireServer(unpack({ "Ready", "1787387146_6082" }))
         print("-> Berhasil masuk ke sesi Dungeon!")
         
-        -- 2. Tunggu load & Equip Senjata
         task.wait(3)
         if not isRunning then break end
         
@@ -391,7 +460,6 @@ local function mainLoop()
             print("-> Senjata 'Attack' di-equip!")
         end
 
-        -- 3. FARM TARGET 1: Kugha
         if not isRunning then break end
         print("-> Mencari target 1: Kugha...")
         farmSpecificMob(function()
@@ -403,7 +471,6 @@ local function mainLoop()
         if not isRunning then break end
         print("✅ Kugha dikalahkan!")
 
-        -- 4. FARM TARGET 2: Agito
         print("-> Mencari target 2: Agito...")
         farmSpecificMob(function()
             if workspace:FindFirstChild("Mobs") then
@@ -414,7 +481,6 @@ local function mainLoop()
         if not isRunning then break end
         print("✅ Agito dikalahkan!")
 
-        -- 5. FARM TARGET 3: Daguba
         print("-> Mencari target 3: Daguba...")
         farmSpecificMob(function()
             if workspace:FindFirstChild("Mobs") then
@@ -425,7 +491,6 @@ local function mainLoop()
         if not isRunning then break end
         print("✅ Daguba dikalahkan!")
 
-        -- 6. SELESAI: Matikan Combat (Unequip senjata ke Backpack)
         print("-> Semua boss selesai! Meng-unequip senjata...")
         local activeChar = player.Character
         if activeChar then
@@ -443,7 +508,6 @@ local function mainLoop()
         end
         if not isRunning then break end
 
-        -- 7. KEMBALI KE LOKASI AWAL & SELESAIKAN QUEST (DojoStudent)
         print("-> Teleport ke Koordinat Awal (DojoStudent)...")
         local freshChar = player.Character or player.CharacterAdded:Wait()
         local freshHRP = freshChar:WaitForChild("HumanoidRootPart")
@@ -468,7 +532,6 @@ local function mainLoop()
         task.wait(1)
         if not isRunning then break end
 
-        -- 8. KEMBALI KE LOKASI KEDUA & DIALOG SHOICHI
         print("-> Teleport ke Koordinat Kedua (Shoichi)...")
         if freshHRP then
             freshHRP.CFrame = lokasiKedua * CFrame.new(0, 3, 0)
@@ -510,11 +573,11 @@ end
 toggleButton.MouseButton1Click:Connect(function()
     isRunning = not isRunning
     if isRunning then
-        toggleButton.Text = "Status: ON [Click]"
-        toggleButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50) -- Hijau
+        toggleButton.Text = "STATUS: ON"
+        toggleButton.BackgroundColor3 = Color3.fromRGB(46, 204, 113) -- Hijau Elegan
         task.spawn(mainLoop)
     else
-        toggleButton.Text = "Status: OFF [Click]"
-        toggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50) -- Merah
+        toggleButton.Text = "STATUS: OFF"
+        toggleButton.BackgroundColor3 = Color3.fromRGB(231, 76, 60) -- Merah Elegan
     end
 end)
