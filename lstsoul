@@ -21,8 +21,17 @@ local dungeonSession = remoteFolder:WaitForChild("Dungeon"):WaitForChild("Sessio
 local lokasiPertama = CFrame.new(-1170, 2, -565)
 local lokasiKedua = CFrame.new(-3441, -2, -3178)
 
+-- Pengaturan Difficulty
+local difficulties = {
+    {Name = "Easy",    Int = 1, Code = "1787387146_6082"},
+    {Name = "Normal",  Int = 2, Code = "1787469221_3721"},
+    {Name = "Hard",    Int = 3, Code = "1787469670_9419"},
+    {Name = "Extreme", Int = 4, Code = "1787469740_5379"}
+}
+local selectedDiff = difficulties[1] -- Default ke Easy
+
 -- ==========================================
--- PEMBUATAN GUI (MODERN & CLEAN THEME)
+-- PEMBUATAN GUI (MODERN DENGAN DROPDOWN)
 -- ==========================================
 if CoreGui:FindFirstChild("AutoQuestGUI") then
     CoreGui.AutoQuestGUI:Destroy()
@@ -33,14 +42,15 @@ screenGui.Name = "AutoQuestGUI"
 screenGui.Parent = CoreGui
 screenGui.ResetOnSpawn = false
 
--- Panel Utama (Dark Mode Modern)
+-- Panel Utama
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
 mainFrame.Parent = screenGui
 mainFrame.BackgroundColor3 = Color3.fromRGB(24, 24, 27) -- Zinc 900
 mainFrame.Position = UDim2.new(0.05, 0, 0.1, 0)
-mainFrame.Size = UDim2.new(0, 240, 0, 150)
+mainFrame.Size = UDim2.new(0, 240, 0, 185) -- Diperbesar untuk slot Dropdown
 mainFrame.BorderSizePixel = 0
+mainFrame.ClipsDescendants = false -- Agar dropdown bisa keluar dari batas frame jika perlu
 
 local cornerMain = Instance.new("UICorner")
 cornerMain.CornerRadius = UDim.new(0, 8)
@@ -58,7 +68,7 @@ shadow.Parent = mainFrame
 shadow.BackgroundTransparency = 1
 shadow.Position = UDim2.new(0, -15, 0, -15)
 shadow.Size = UDim2.new(1, 30, 1, 30)
-shadow.ZIndex = -1
+shadow.ZIndex = 0
 shadow.Image = "rbxassetid://5554236805"
 shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
 shadow.ImageTransparency = 0.6
@@ -72,18 +82,18 @@ topBar.Parent = mainFrame
 topBar.BackgroundColor3 = Color3.fromRGB(39, 39, 42) -- Zinc 800
 topBar.Size = UDim2.new(1, 0, 0, 36)
 topBar.BorderSizePixel = 0
+topBar.ZIndex = 2
 
 local cornerTop = Instance.new("UICorner")
 cornerTop.CornerRadius = UDim.new(0, 8)
 cornerTop.Parent = topBar
-
--- Memotong sudut bawah TopBar
 local fixTopBar = Instance.new("Frame")
 fixTopBar.Parent = topBar
 fixTopBar.BackgroundColor3 = Color3.fromRGB(39, 39, 42)
 fixTopBar.Position = UDim2.new(0, 0, 0.5, 0)
 fixTopBar.Size = UDim2.new(1, 0, 0.5, 0)
 fixTopBar.BorderSizePixel = 0
+fixTopBar.ZIndex = 2
 
 local line = Instance.new("Frame")
 line.Parent = topBar
@@ -91,6 +101,7 @@ line.BackgroundColor3 = Color3.fromRGB(63, 63, 70)
 line.BorderSizePixel = 0
 line.Position = UDim2.new(0, 0, 1, 0)
 line.Size = UDim2.new(1, 0, 0, 1)
+line.ZIndex = 2
 
 local titleLabel = Instance.new("TextLabel")
 titleLabel.Parent = topBar
@@ -99,9 +110,10 @@ titleLabel.Position = UDim2.new(0, 12, 0, 0)
 titleLabel.Size = UDim2.new(0, 120, 1, 0)
 titleLabel.Font = Enum.Font.GothamBold
 titleLabel.Text = "LOST SOUL"
-titleLabel.TextColor3 = Color3.fromRGB(244, 244, 245) -- Zinc 100
+titleLabel.TextColor3 = Color3.fromRGB(244, 244, 245)
 titleLabel.TextSize = 13
 titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+titleLabel.ZIndex = 3
 
 -- Helper Animasi Tombol
 local function createButtonAnim(btn, normalColor, hoverColor)
@@ -114,8 +126,8 @@ local function createButtonAnim(btn, normalColor, hoverColor)
 end
 
 -- Tombol Close (X)
-local colorCloseN = Color3.fromRGB(239, 68, 68) -- Red 500
-local colorCloseH = Color3.fromRGB(248, 113, 113) -- Red 400
+local colorCloseN = Color3.fromRGB(239, 68, 68)
+local colorCloseH = Color3.fromRGB(248, 113, 113)
 local closeButton = Instance.new("TextButton")
 closeButton.Parent = topBar
 closeButton.BackgroundColor3 = colorCloseN
@@ -126,14 +138,15 @@ closeButton.Text = "X"
 closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 closeButton.TextSize = 11
 closeButton.AutoButtonColor = false
+closeButton.ZIndex = 3
 local cornerClose = Instance.new("UICorner")
 cornerClose.CornerRadius = UDim.new(1, 0)
 cornerClose.Parent = closeButton
 createButtonAnim(closeButton, colorCloseN, colorCloseH)
 
 -- Tombol Minimize (-)
-local colorMinN = Color3.fromRGB(245, 158, 11) -- Amber 500
-local colorMinH = Color3.fromRGB(251, 191, 36) -- Amber 400
+local colorMinN = Color3.fromRGB(245, 158, 11)
+local colorMinH = Color3.fromRGB(251, 191, 36)
 local minButton = Instance.new("TextButton")
 minButton.Parent = topBar
 minButton.BackgroundColor3 = colorMinN
@@ -144,43 +157,122 @@ minButton.Text = "-"
 minButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 minButton.TextSize = 14
 minButton.AutoButtonColor = false
+minButton.ZIndex = 3
 local cornerMin = Instance.new("UICorner")
 cornerMin.CornerRadius = UDim.new(1, 0)
 cornerMin.Parent = minButton
 createButtonAnim(minButton, colorMinN, colorMinH)
 
+-- DROPDOWN DIFFICULTY
+local diffButton = Instance.new("TextButton")
+diffButton.Name = "DiffButton"
+diffButton.Parent = mainFrame
+diffButton.BackgroundColor3 = Color3.fromRGB(39, 39, 42)
+diffButton.Position = UDim2.new(0.5, -95, 0, 48)
+diffButton.Size = UDim2.new(0, 190, 0, 32)
+diffButton.Font = Enum.Font.GothamSemibold
+diffButton.Text = "Difficulty: " .. selectedDiff.Name .. " ▼"
+diffButton.TextColor3 = Color3.fromRGB(228, 228, 231)
+diffButton.TextSize = 12
+diffButton.AutoButtonColor = false
+diffButton.ZIndex = 5
+local cornerDiff = Instance.new("UICorner")
+cornerDiff.CornerRadius = UDim.new(0, 6)
+cornerDiff.Parent = diffButton
+local strokeDiff = Instance.new("UIStroke")
+strokeDiff.Color = Color3.fromRGB(63, 63, 70)
+strokeDiff.Thickness = 1
+strokeDiff.Parent = diffButton
+createButtonAnim(diffButton, Color3.fromRGB(39, 39, 42), Color3.fromRGB(63, 63, 70))
+
+local dropdownList = Instance.new("Frame")
+dropdownList.Name = "DropdownList"
+dropdownList.Parent = mainFrame
+dropdownList.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
+dropdownList.Position = UDim2.new(0.5, -95, 0, 82)
+dropdownList.Size = UDim2.new(0, 190, 0, #difficulties * 28)
+dropdownList.Visible = false
+dropdownList.ZIndex = 10
+local cornerList = Instance.new("UICorner")
+cornerList.CornerRadius = UDim.new(0, 6)
+cornerList.Parent = dropdownList
+local strokeList = Instance.new("UIStroke")
+strokeList.Color = Color3.fromRGB(82, 82, 91)
+strokeList.Thickness = 1
+strokeList.Parent = dropdownList
+local listLayout = Instance.new("UIListLayout")
+listLayout.Parent = dropdownList
+listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+-- Isi Dropdown
+for i, diff in ipairs(difficulties) do
+    local item = Instance.new("TextButton")
+    item.Name = diff.Name
+    item.Parent = dropdownList
+    item.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
+    item.Size = UDim2.new(1, 0, 0, 28)
+    item.Font = Enum.Font.Gotham
+    item.Text = diff.Name
+    item.TextColor3 = Color3.fromRGB(212, 212, 216)
+    item.TextSize = 12
+    item.AutoButtonColor = false
+    item.ZIndex = 11
+    item.LayoutOrder = i
+    
+    createButtonAnim(item, Color3.fromRGB(24, 24, 27), Color3.fromRGB(63, 63, 70))
+    
+    item.MouseButton1Click:Connect(function()
+        selectedDiff = diff
+        diffButton.Text = "Difficulty: " .. diff.Name .. " ▼"
+        dropdownList.Visible = false
+    end)
+end
+
+diffButton.MouseButton1Click:Connect(function()
+    dropdownList.Visible = not dropdownList.Visible
+end)
+
 -- Warna Status Toggle
-local colorOff = Color3.fromRGB(239, 68, 68) -- Red 500
-local colorOn = Color3.fromRGB(16, 185, 129) -- Emerald 500
+local colorOff = Color3.fromRGB(239, 68, 68) -- Red
+local colorOn = Color3.fromRGB(16, 185, 129) -- Emerald
 
 -- Tombol Toggle ON/OFF
 local toggleButton = Instance.new("TextButton")
 toggleButton.Name = "ToggleButton"
 toggleButton.Parent = mainFrame
 toggleButton.BackgroundColor3 = colorOff
-toggleButton.Position = UDim2.new(0.5, -95, 0, 56)
+toggleButton.Position = UDim2.new(0.5, -95, 0, 90) -- Digeser ke bawah karena ada dropdown
 toggleButton.Size = UDim2.new(0, 190, 0, 42)
 toggleButton.Font = Enum.Font.GothamBold
 toggleButton.Text = "START FARMING"
 toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 toggleButton.TextSize = 13
 toggleButton.AutoButtonColor = false
+toggleButton.ZIndex = 2
 local cornerToggle = Instance.new("UICorner")
 cornerToggle.CornerRadius = UDim.new(0, 6)
 cornerToggle.Parent = toggleButton
+
+toggleButton.MouseEnter:Connect(function()
+    TweenService:Create(toggleButton, TweenInfo.new(0.15), {Size = UDim2.new(0, 194, 0, 46), Position = UDim2.new(0.5, -97, 0, 88)}):Play()
+end)
+toggleButton.MouseLeave:Connect(function()
+    TweenService:Create(toggleButton, TweenInfo.new(0.15), {Size = UDim2.new(0, 190, 0, 42), Position = UDim2.new(0.5, -95, 0, 90)}):Play()
+end)
 
 -- Status Sub-text
 local statusSub = Instance.new("TextLabel")
 statusSub.Parent = mainFrame
 statusSub.BackgroundTransparency = 1
-statusSub.Position = UDim2.new(0, 0, 0, 110)
+statusSub.Position = UDim2.new(0, 0, 0, 145)
 statusSub.Size = UDim2.new(1, 0, 0, 20)
 statusSub.Font = Enum.Font.Gotham
 statusSub.Text = "Status: IDLE"
-statusSub.TextColor3 = Color3.fromRGB(161, 161, 170) -- Zinc 400
+statusSub.TextColor3 = Color3.fromRGB(161, 161, 170)
 statusSub.TextSize = 12
+statusSub.ZIndex = 2
 
--- Tombol Bulat Minimized (Floating Bubble)
+-- Tombol Bulat Minimized
 local minBubble = Instance.new("TextButton")
 minBubble.Name = "MinimizedBubble"
 minBubble.Parent = screenGui
@@ -192,6 +284,7 @@ minBubble.Text = "⚡"
 minBubble.TextColor3 = Color3.fromRGB(244, 244, 245)
 minBubble.TextSize = 20
 minBubble.Visible = false
+minBubble.ZIndex = 15
 local cornerBubble = Instance.new("UICorner")
 cornerBubble.CornerRadius = UDim.new(1, 0)
 cornerBubble.Parent = minBubble
@@ -205,7 +298,6 @@ local isRunning = false
 -- ==========================================
 -- CUSTOM SMOOTH DRAGGING SYSTEM (BUG FIX)
 -- ==========================================
--- 1. Dragging untuk Main Frame
 local dragging, dragInput, dragStart, startPos
 topBar.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -233,7 +325,6 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- 2. Dragging & Click Fix untuk Minimized Bubble
 local draggingBubble, dragInputBubble, dragStartBubble, startPosBubble
 local isActuallyDraggingBubble = false
 
@@ -249,8 +340,6 @@ minBubble.InputBegan:Connect(function(input)
             if input.UserInputState == Enum.UserInputState.End then
                 draggingBubble = false
                 con:Disconnect()
-                
-                -- LOGIKA PENTING: Jika tidak digeser (hanya diklik), baru menu dibuka!
                 if not isActuallyDraggingBubble then
                     mainFrame.Position = minBubble.Position
                     minBubble.Visible = false
@@ -270,12 +359,9 @@ end)
 UserInputService.InputChanged:Connect(function(input)
     if input == dragInputBubble and draggingBubble then
         local delta = input.Position - dragStartBubble
-        
-        -- Jika mouse/jari bergerak lebih dari 5 pixel, hitung sebagai "DRAG", bukan "KLIK"
         if math.abs(delta.X) > 5 or math.abs(delta.Y) > 5 then
             isActuallyDraggingBubble = true
         end
-        
         if isActuallyDraggingBubble then
             minBubble.Position = UDim2.new(startPosBubble.X.Scale, startPosBubble.X.Offset + delta.X, startPosBubble.Y.Scale, startPosBubble.Y.Offset + delta.Y)
         end
@@ -283,7 +369,7 @@ UserInputService.InputChanged:Connect(function(input)
 end)
 
 -- ==========================================
--- FUNGSI KONTROL GUI (CLOSE & MINIMIZE)
+-- FUNGSI KONTROL GUI
 -- ==========================================
 closeButton.MouseButton1Click:Connect(function()
     isRunning = false
@@ -291,11 +377,11 @@ closeButton.MouseButton1Click:Connect(function()
 end)
 
 minButton.MouseButton1Click:Connect(function()
+    dropdownList.Visible = false -- Tutup dropdown jika minimize
     minBubble.Position = UDim2.new(0, mainFrame.AbsolutePosition.X, 0, mainFrame.AbsolutePosition.Y)
     mainFrame.Visible = false
     minBubble.Visible = true
 end)
--- (Catatan: Event Click untuk minBubble sekarang ditangani di dalam InputBegan di atas agar tidak bentrok dengan drag)
 
 -- ==========================================
 -- FUNGSI BANTUAN DIALOG & PROXIMITY
@@ -311,9 +397,6 @@ local function triggerNPC(npcName)
     end
 end
 
--- ==========================================
--- ALUR AWAL (DIJALANKAN SEKALI SAJA)
--- ==========================================
 local function alurAwalSetup()
     if not isRunning then return end
     statusSub.Text = "Status: Mengambil Quest..."
@@ -357,9 +440,6 @@ local function alurAwalSetup()
     task.wait(0.5)
 end
 
--- ==========================================
--- FUNGSI FARMING TARGET DENGAN TIMEOUT PINTAR
--- ==========================================
 local function farmSpecificMob(getMobFunction, mobName, timeout)
     statusSub.Text = "Status: Scan " .. mobName .. "..."
     
@@ -381,7 +461,7 @@ local function farmSpecificMob(getMobFunction, mobName, timeout)
             timeWaited = timeWaited + 0.2
             if timeWaited >= timeout then
                 statusSub.Text = mobName .. " di-Skip!"
-                return -- Keluar fungsi jika kelamaan nunggu boss spawn (Timeout)
+                return
             end
         end
     end
@@ -423,15 +503,7 @@ local function farmSpecificMob(getMobFunction, mobName, timeout)
             if characterRef and characterRef:FindFirstChild("PlayerHandler") then
                 local playerHandler = characterRef.PlayerHandler:FindFirstChild("HandlerEvent")
                 if playerHandler then
-                    local args = {
-                        {
-                            Skill = true,
-                            AttackType = "Down",
-                            Key = "V",
-                            MouseData = CFrame.new(67.20719909667969, 1008.887451171875, 5086.59912109375, 1, 0, 0, 0, 1, 0, 0, 0, 1)
-                        }
-                    }
-                    playerHandler:FireServer(unpack(args))
+                    playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "V", MouseData = CFrame.new(67.2, 1008.8, 5086.6, 1, 0, 0, 0, 1, 0, 0, 0, 1) } }))
                 end
             end
             task.wait(0.2)
@@ -504,10 +576,11 @@ local function mainLoop()
     alurAwalSetup()
 
     while isRunning do
-        statusSub.Text = "Status: Membuat Lobby..."
+        statusSub.Text = "Status: Membuat Lobby (" .. selectedDiff.Name .. ")"
         
         if not isRunning then break end
-        lobbyAction:InvokeServer(unpack({ "create", "public", "trial", "AncientWorld", 2, 1 }))
+        -- Menggunakan value Int dari Dropdown (1=Easy, 2=Normal, 3=Hard, 4=Extreme)
+        lobbyAction:InvokeServer(unpack({ "create", "public", "trial", "AncientWorld", 2, selectedDiff.Int }))
         task.wait(1)
         if not isRunning then break end
         
@@ -515,7 +588,8 @@ local function mainLoop()
         task.wait(2)
         if not isRunning then break end
         
-        dungeonSession:FireServer(unpack({ "Ready", "1787387146_6082" }))
+        -- Menggunakan value Code Ready dari Dropdown
+        dungeonSession:FireServer(unpack({ "Ready", selectedDiff.Code }))
         
         task.wait(3)
         if not isRunning then break end
@@ -533,7 +607,7 @@ local function mainLoop()
             return nil
         end, "Kugha")
 
-        -- 2. FLYING XUGO (Opsional, Timeout 3 detik)
+        -- 2. FLYING XUGO
         if not isRunning then break end
         task.wait(1.5) 
         if workspace:FindFirstChild("Mobs") and workspace.Mobs:FindFirstChild("FlyingXugo") then
@@ -572,7 +646,7 @@ local function mainLoop()
         end
         if not isRunning then break end
 
-        -- 7. KEMBALI KE LOKASI AWAL (DojoStudent)
+        -- 7. TURN IN QUEST
         statusSub.Text = "Status: Turn-in Quest..."
         local freshChar = player.Character or player.CharacterAdded:Wait()
         local freshHRP = freshChar:WaitForChild("HumanoidRootPart")
@@ -594,7 +668,7 @@ local function mainLoop()
         task.wait(1)
         if not isRunning then break end
 
-        -- 8. KEMBALI KE LOKASI KEDUA (Shoichi)
+        -- 8. KEMBALI KE SHOICHI
         if freshHRP then freshHRP.CFrame = lokasiKedua * CFrame.new(0, 3, 0) end
         task.wait(1.5)
         if not isRunning then break end
@@ -626,6 +700,7 @@ end
 toggleButton.MouseButton1Click:Connect(function()
     isRunning = not isRunning
     if isRunning then
+        dropdownList.Visible = false -- Tutup dropdown saat mulai
         toggleButton.Text = "STOP FARMING"
         TweenService:Create(toggleButton, TweenInfo.new(0.2), {BackgroundColor3 = colorOn}):Play()
         task.spawn(mainLoop)
