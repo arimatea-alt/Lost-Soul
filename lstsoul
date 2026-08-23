@@ -24,7 +24,7 @@ local lokasiDojo = CFrame.new(-1170, 2, -565)   -- Lost Soul (DojoStudent)
 local lokasiShoichi = CFrame.new(-3441, -2, -3178) -- Lost Soul (Shoichi)
 
 -- ==========================================
--- DATABASE GAME MODES (ALL-IN-ONE)
+-- DATABASE GAME MODES & COMBAT MODES
 -- ==========================================
 local gameModes = {
     {
@@ -60,9 +60,15 @@ local gameModes = {
     }
 }
 
+local combatModes = {
+    { Name = "Casual" },
+    { Name = "Random" }
+}
+
 local selectedMode = gameModes[1]
 local selectedDungeon = selectedMode.Dungeons[1]
 local selectedDiff = selectedDungeon.Difficulties[1]
+local selectedCombat = combatModes[1]
 
 -- ==========================================
 -- PEMBUATAN GUI (MODERN & CLEAN)
@@ -81,7 +87,7 @@ mainFrame.Name = "MainFrame"
 mainFrame.Parent = screenGui
 mainFrame.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
 mainFrame.Position = UDim2.new(0.05, 0, 0.1, 0)
-mainFrame.Size = UDim2.new(0, 240, 0, 255)
+mainFrame.Size = UDim2.new(0, 240, 0, 285)
 mainFrame.BorderSizePixel = 0
 mainFrame.ClipsDescendants = false
 
@@ -180,19 +186,20 @@ cornerMin.Parent = minButton
 createButtonAnim(minButton, colorMinN, colorMinH)
 
 -- ==========================================
--- DROPDOWN SELECTIONS
+-- DROPDOWN SELECTIONS (MODE, MAP, DIFF, COMBAT)
 -- ==========================================
+
 local modeBtn = Instance.new("TextButton")
 modeBtn.Parent = mainFrame
 modeBtn.BackgroundColor3 = Color3.fromRGB(39, 39, 42)
-modeBtn.Position = UDim2.new(0.5, -95, 0, 46)
-modeBtn.Size = UDim2.new(0, 190, 0, 28)
+modeBtn.Position = UDim2.new(0.5, -95, 0, 44)
+modeBtn.Size = UDim2.new(0, 190, 0, 26)
 modeBtn.Font = Enum.Font.GothamSemibold
 modeBtn.Text = "Mode: " .. selectedMode.ModeName .. " ▼"
 modeBtn.TextColor3 = Color3.fromRGB(228, 228, 231)
 modeBtn.TextSize = 11
 modeBtn.AutoButtonColor = false
-modeBtn.ZIndex = 6
+modeBtn.ZIndex = 7
 local cornerMode = Instance.new("UICorner")
 cornerMode.CornerRadius = UDim.new(0, 6)
 cornerMode.Parent = modeBtn
@@ -201,8 +208,8 @@ createButtonAnim(modeBtn, Color3.fromRGB(39, 39, 42), Color3.fromRGB(63, 63, 70)
 local modeList = Instance.new("Frame")
 modeList.Parent = mainFrame
 modeList.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
-modeList.Position = UDim2.new(0.5, -95, 0, 76)
-modeList.Size = UDim2.new(0, 190, 0, #gameModes * 28)
+modeList.Position = UDim2.new(0.5, -95, 0, 72)
+modeList.Size = UDim2.new(0, 190, 0, #gameModes * 26)
 modeList.Visible = false
 modeList.ZIndex = 25
 local mlLayout = Instance.new("UIListLayout")
@@ -211,14 +218,14 @@ mlLayout.Parent = modeList
 local dungeonBtn = Instance.new("TextButton")
 dungeonBtn.Parent = mainFrame
 dungeonBtn.BackgroundColor3 = Color3.fromRGB(39, 39, 42)
-dungeonBtn.Position = UDim2.new(0.5, -95, 0, 78)
-dungeonBtn.Size = UDim2.new(0, 190, 0, 28)
+dungeonBtn.Position = UDim2.new(0.5, -95, 0, 74)
+dungeonBtn.Size = UDim2.new(0, 190, 0, 26)
 dungeonBtn.Font = Enum.Font.GothamSemibold
 dungeonBtn.Text = "Map: " .. selectedDungeon.Name .. " ▼"
 dungeonBtn.TextColor3 = Color3.fromRGB(228, 228, 231)
 dungeonBtn.TextSize = 11
 dungeonBtn.AutoButtonColor = false
-dungeonBtn.ZIndex = 5
+dungeonBtn.ZIndex = 6
 local cornerDung = Instance.new("UICorner")
 cornerDung.CornerRadius = UDim.new(0, 6)
 cornerDung.Parent = dungeonBtn
@@ -227,7 +234,7 @@ createButtonAnim(dungeonBtn, Color3.fromRGB(39, 39, 42), Color3.fromRGB(63, 63, 
 local dungeonList = Instance.new("Frame")
 dungeonList.Parent = mainFrame
 dungeonList.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
-dungeonList.Position = UDim2.new(0.5, -95, 0, 108)
+dungeonList.Position = UDim2.new(0.5, -95, 0, 102)
 dungeonList.Size = UDim2.new(0, 190, 0, 110)
 dungeonList.Visible = false
 dungeonList.ZIndex = 20
@@ -242,14 +249,14 @@ dlLayout.Parent = scrollDL
 local diffBtn = Instance.new("TextButton")
 diffBtn.Parent = mainFrame
 diffBtn.BackgroundColor3 = Color3.fromRGB(39, 39, 42)
-diffBtn.Position = UDim2.new(0.5, -95, 0, 110)
-diffBtn.Size = UDim2.new(0, 190, 0, 28)
+diffBtn.Position = UDim2.new(0.5, -95, 0, 104)
+diffBtn.Size = UDim2.new(0, 190, 0, 26)
 diffBtn.Font = Enum.Font.GothamSemibold
 diffBtn.Text = "Diff: " .. selectedDiff.Name .. " ▼"
 diffBtn.TextColor3 = Color3.fromRGB(228, 228, 231)
 diffBtn.TextSize = 11
 diffBtn.AutoButtonColor = false
-diffBtn.ZIndex = 4
+diffBtn.ZIndex = 5
 local cornerDiff = Instance.new("UICorner")
 cornerDiff.CornerRadius = UDim.new(0, 6)
 cornerDiff.Parent = diffBtn
@@ -258,24 +265,50 @@ createButtonAnim(diffBtn, Color3.fromRGB(39, 39, 42), Color3.fromRGB(63, 63, 70)
 local diffList = Instance.new("Frame")
 diffList.Parent = mainFrame
 diffList.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
-diffList.Position = UDim2.new(0.5, -95, 0, 140)
+diffList.Position = UDim2.new(0.5, -95, 0, 132)
 diffList.Size = UDim2.new(0, 190, 0, 100)
 diffList.Visible = false
 diffList.ZIndex = 15
 local dl2Layout = Instance.new("UIListLayout")
 dl2Layout.Parent = diffList
 
+local combatBtn = Instance.new("TextButton")
+combatBtn.Parent = mainFrame
+combatBtn.BackgroundColor3 = Color3.fromRGB(39, 39, 42)
+combatBtn.Position = UDim2.new(0.5, -95, 0, 134)
+combatBtn.Size = UDim2.new(0, 190, 0, 26)
+combatBtn.Font = Enum.Font.GothamSemibold
+combatBtn.Text = "Combat: " .. selectedCombat.Name .. " ▼"
+combatBtn.TextColor3 = Color3.fromRGB(228, 228, 231)
+combatBtn.TextSize = 11
+combatBtn.AutoButtonColor = false
+combatBtn.ZIndex = 4
+local cornerCombat = Instance.new("UICorner")
+cornerCombat.CornerRadius = UDim.new(0, 6)
+cornerCombat.Parent = combatBtn
+createButtonAnim(combatBtn, Color3.fromRGB(39, 39, 42), Color3.fromRGB(63, 63, 70))
+
+local combatList = Instance.new("Frame")
+combatList.Parent = mainFrame
+combatList.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
+combatList.Position = UDim2.new(0.5, -95, 0, 162)
+combatList.Size = UDim2.new(0, 190, 0, #combatModes * 26)
+combatList.Visible = false
+combatList.ZIndex = 12
+local cmLayout = Instance.new("UIListLayout")
+cmLayout.Parent = combatList
+
 local function updateDungeonList()
     for _, child in pairs(scrollDL:GetChildren()) do
         if child:IsA("TextButton") then child:Destroy() end
     end
-    scrollDL.CanvasSize = UDim2.new(0, 0, 0, #selectedMode.Dungeons * 28)
+    scrollDL.CanvasSize = UDim2.new(0, 0, 0, #selectedMode.Dungeons * 26)
     
     for i, dng in ipairs(selectedMode.Dungeons) do
         local item = Instance.new("TextButton")
         item.Parent = scrollDL
         item.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
-        item.Size = UDim2.new(1, 0, 0, 28)
+        item.Size = UDim2.new(1, 0, 0, 26)
         item.Font = Enum.Font.Gotham
         item.Text = dng.Name
         item.TextColor3 = Color3.fromRGB(212, 212, 216)
@@ -299,12 +332,12 @@ local function updateDiffList()
     for _, child in pairs(diffList:GetChildren()) do
         if child:IsA("TextButton") then child:Destroy() end
     end
-    diffList.Size = UDim2.new(0, 190, 0, #selectedDungeon.Difficulties * 28)
+    diffList.Size = UDim2.new(0, 190, 0, #selectedDungeon.Difficulties * 26)
     for i, df in ipairs(selectedDungeon.Difficulties) do
         local item = Instance.new("TextButton")
         item.Parent = diffList
         item.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
-        item.Size = UDim2.new(1, 0, 0, 28)
+        item.Size = UDim2.new(1, 0, 0, 26)
         item.Font = Enum.Font.Gotham
         item.Text = df.Name
         item.TextColor3 = Color3.fromRGB(212, 212, 216)
@@ -326,7 +359,7 @@ for i, mObj in ipairs(gameModes) do
     local item = Instance.new("TextButton")
     item.Parent = modeList
     item.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
-    item.Size = UDim2.new(1, 0, 0, 28)
+    item.Size = UDim2.new(1, 0, 0, 26)
     item.Font = Enum.Font.Gotham
     item.Text = mObj.ModeName
     item.TextColor3 = Color3.fromRGB(212, 212, 216)
@@ -343,12 +376,32 @@ for i, mObj in ipairs(gameModes) do
     end)
 end
 
+for i, cmObj in ipairs(combatModes) do
+    local item = Instance.new("TextButton")
+    item.Parent = combatList
+    item.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
+    item.Size = UDim2.new(1, 0, 0, 26)
+    item.Font = Enum.Font.Gotham
+    item.Text = cmObj.Name
+    item.TextColor3 = Color3.fromRGB(212, 212, 216)
+    item.TextSize = 11
+    item.AutoButtonColor = false
+    item.ZIndex = 13
+    createButtonAnim(item, Color3.fromRGB(24, 24, 27), Color3.fromRGB(63, 63, 70))
+    item.MouseButton1Click:Connect(function()
+        selectedCombat = cmObj
+        combatBtn.Text = "Combat: " .. cmObj.Name .. " ▼"
+        combatList.Visible = false
+    end)
+end
+
 updateDungeonList()
 updateDiffList()
 
-modeBtn.MouseButton1Click:Connect(function() modeList.Visible = not modeList.Visible dungeonList.Visible = false diffList.Visible = false end)
-dungeonBtn.MouseButton1Click:Connect(function() dungeonList.Visible = not dungeonList.Visible modeList.Visible = false diffList.Visible = false end)
-diffBtn.MouseButton1Click:Connect(function() diffList.Visible = not diffList.Visible modeList.Visible = false dungeonList.Visible = false end)
+modeBtn.MouseButton1Click:Connect(function() modeList.Visible = not modeList.Visible dungeonList.Visible = false diffList.Visible = false combatList.Visible = false end)
+dungeonBtn.MouseButton1Click:Connect(function() dungeonList.Visible = not dungeonList.Visible modeList.Visible = false diffList.Visible = false combatList.Visible = false end)
+diffBtn.MouseButton1Click:Connect(function() diffList.Visible = not diffList.Visible modeList.Visible = false dungeonList.Visible = false combatList.Visible = false end)
+combatBtn.MouseButton1Click:Connect(function() combatList.Visible = not combatList.Visible modeList.Visible = false dungeonList.Visible = false diffList.Visible = false end)
 
 -- ==========================================
 -- TOMBOL UTAMA (START/STOP) & DRAG
@@ -359,8 +412,8 @@ local colorOn = Color3.fromRGB(16, 185, 129)
 local toggleButton = Instance.new("TextButton")
 toggleButton.Parent = mainFrame
 toggleButton.BackgroundColor3 = colorOff
-toggleButton.Position = UDim2.new(0.5, -95, 0, 150)
-toggleButton.Size = UDim2.new(0, 190, 0, 38)
+toggleButton.Position = UDim2.new(0.5, -95, 0, 172)
+toggleButton.Size = UDim2.new(0, 190, 0, 36)
 toggleButton.Font = Enum.Font.GothamBold
 toggleButton.Text = "START FARMING"
 toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -374,7 +427,7 @@ cornerToggle.Parent = toggleButton
 local statusSub = Instance.new("TextLabel")
 statusSub.Parent = mainFrame
 statusSub.BackgroundTransparency = 1
-statusSub.Position = UDim2.new(0, 0, 0, 205)
+statusSub.Position = UDim2.new(0, 0, 0, 230)
 statusSub.Size = UDim2.new(1, 0, 0, 20)
 statusSub.Font = Enum.Font.Gotham
 statusSub.Text = "Status: IDLE"
@@ -457,13 +510,12 @@ UserInputService.InputChanged:Connect(function(input)
 end)
 
 closeButton.MouseButton1Click:Connect(function() isRunning = false screenGui:Destroy() end)
-minButton.MouseButton1Click:Connect(function() modeList.Visible = false dungeonList.Visible = false diffList.Visible = false minBubble.Position = UDim2.new(0, mainFrame.AbsolutePosition.X, 0, mainFrame.AbsolutePosition.Y) mainFrame.Visible = false minBubble.Visible = true end)
+minButton.MouseButton1Click:Connect(function() modeList.Visible = false dungeonList.Visible = false diffList.Visible = false combatList.Visible = false minBubble.Position = UDim2.new(0, mainFrame.AbsolutePosition.X, 0, mainFrame.AbsolutePosition.Y) mainFrame.Visible = false minBubble.Visible = true end)
 
 -- ==========================================
 -- FUNGSI BANTUAN & DEATH DETECTION
 -- ==========================================
 
--- Mengecek apakah karakter masih hidup
 local function isAlive()
     local char = player.Character
     if not char then return false end
@@ -472,7 +524,6 @@ local function isAlive()
     return true
 end
 
--- Fungsi Auto Henshin Lengkap
 local function doAutoHenshin()
     if not isAlive() then return false end
     statusSub.Text = "Status: Auto Henshin 1..."
@@ -522,7 +573,7 @@ local function takeYenFarmQuest()
     
     if (hrp.Position - ryugaCoords.Position).Magnitude > 20 then
         hrp.CFrame = ryugaCoords
-        task.wait(1)
+        task.wait(1.5)
     end
     
     if not isRunning or not isAlive() then return end
@@ -581,7 +632,7 @@ local function turnInYenFarmQuest()
     local hrp = char:WaitForChild("HumanoidRootPart")
     
     if hrp then hrp.CFrame = ryugaCoords end
-    task.wait(1)
+    task.wait(1.5)
     
     if not isRunning or not isAlive() then return end
     triggerNPC("Ryuga")
@@ -623,7 +674,7 @@ local function turnInLostSoulQuest()
     if not isRunning or not isAlive() then return end
     if hrp then hrp.CFrame = lokasiShoichi * CFrame.new(0, 3, 0) end
     task.wait(1.5)
-    if not isRunning or not isAlive() then return end
+    if not isRunning then return end
 
     triggerNPC("Shoichi")
     task.wait(1)
@@ -646,7 +697,7 @@ local function turnInLostSoulQuest()
 end
 
 -- ==========================================
--- FUNGSI COMBAT & MAGNET
+-- FUNGSI COMBAT & MAGNET (CASUAL vs RANDOM)
 -- ==========================================
 local function farmSpecificMob(getMobFunction, mobName, timeout)
     statusSub.Text = "Status: Scan " .. mobName .. "..."
@@ -673,7 +724,7 @@ local function farmSpecificMob(getMobFunction, mobName, timeout)
     end
     
     if not isRunning or not isAlive() or not isFound then return false end
-    statusSub.Text = "Farming: " .. mobName .. " ⚔️"
+    statusSub.Text = "Farming: " .. mobName .. " ⚔️ (" .. selectedCombat.Name .. ")"
 
     local isTargetActive = true
     local magnetConnection
@@ -698,65 +749,93 @@ local function farmSpecificMob(getMobFunction, mobName, timeout)
         end
     end)
 
-    task.spawn(function()
-        while isTargetActive and isRunning and isAlive() do
-            local characterRef = player.Character
-            if characterRef and characterRef:FindFirstChild("PlayerHandler") then
-                local playerHandler = characterRef.PlayerHandler:FindFirstChild("HandlerEvent")
-                if playerHandler then
-                    playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "V", MouseData = CFrame.new(67.2, 1008.8, 5086.6, 1, 0, 0, 0, 1, 0, 0, 0, 1) } }))
-                end
-            end
-            task.wait(0.2)
-        end
-    end)
-
-    local lastSkill1Time = 0 
-    local lastSkill2Time = 0 
     local characterRef = player.Character or player.CharacterAdded:Wait()
     local playerHandler = characterRef:WaitForChild("PlayerHandler"):WaitForChild("HandlerEvent")
 
-    while isTargetActive and isRunning and isAlive() and task.wait() do
-        local currentMob = getMobFunction()
-        if currentMob and currentMob:FindFirstChild("RootPart") then
-            local aimCFrame = currentMob.RootPart.CFrame 
+    -- KONDISI 1: COMBAT MODE "CASUAL"
+    if selectedCombat.Name == "Casual" then
+        task.spawn(function()
+            while isTargetActive and isRunning and isAlive() do
+                local charRef = player.Character
+                if charRef and charRef:FindFirstChild("PlayerHandler") then
+                    local pH = charRef.PlayerHandler:FindFirstChild("HandlerEvent")
+                    if pH then
+                        pH:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "V", MouseData = CFrame.new(67.2, 1008.8, 5086.6, 1, 0, 0, 0, 1, 0, 0, 0, 1) } }))
+                    end
+                end
+                task.wait(0.2)
+            end
+        end)
 
-            playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
-            task.wait(2)
-            if not isTargetActive or not isRunning or not isAlive() then break end
+        local lastSkill1Time = 0 
+        local lastSkill2Time = 0 
 
-            if tick() - lastSkill1Time >= 10 then
-                playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "E", MouseData = aimCFrame } }))
-                task.wait(5)
-                lastSkill1Time = tick()
-            else
+        while isTargetActive and isRunning and isAlive() and task.wait() do
+            local currentMob = getMobFunction()
+            if currentMob and currentMob:FindFirstChild("RootPart") then
+                local aimCFrame = currentMob.RootPart.CFrame 
+
                 playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
                 task.wait(2)
-            end
-            if not isTargetActive or not isRunning or not isAlive() then break end
+                if not isTargetActive or not isRunning or not isAlive() then break end
 
-            playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
-            task.wait(2)
-            if not isTargetActive or not isRunning or not isAlive() then break end
+                if tick() - lastSkill1Time >= 10 then
+                    playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "E", MouseData = aimCFrame } }))
+                    task.wait(5)
+                    lastSkill1Time = tick()
+                else
+                    playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
+                    task.wait(2)
+                end
+                if not isTargetActive or not isRunning or not isAlive() then break end
 
-            playerHandler:FireServer(unpack({ { CombatAction = true, LightAttack = true, MouseData = aimCFrame } }))
-            task.wait(0.2)
-            if not isTargetActive or not isRunning or not isAlive() then break end
-
-            if tick() - lastSkill2Time >= 15 then
-                playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "R", MouseData = aimCFrame } }))
-                task.wait(2.5)
-                lastSkill2Time = tick()
-            else
                 playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
                 task.wait(2)
-            end
-            if not isTargetActive or not isRunning or not isAlive() then break end
+                if not isTargetActive or not isRunning or not isAlive() then break end
 
-            playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
-            task.wait(2)
-        else
-            isTargetActive = false
+                playerHandler:FireServer(unpack({ { CombatAction = true, LightAttack = true, MouseData = aimCFrame } }))
+                task.wait(0.2)
+                if not isTargetActive or not isRunning or not isAlive() then break end
+
+                if tick() - lastSkill2Time >= 15 then
+                    playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "R", MouseData = aimCFrame } }))
+                    task.wait(2.5)
+                    lastSkill2Time = tick()
+                else
+                    playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
+                    task.wait(2)
+                end
+                if not isTargetActive or not isRunning or not isAlive() then break end
+
+                playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
+                task.wait(2)
+            else
+                isTargetActive = false
+            end
+        end
+
+    -- KONDISI 2: COMBAT MODE "RANDOM" (Spam Bebas & Acak)
+    elseif selectedCombat.Name == "Random" then
+        while isTargetActive and isRunning and isAlive() and task.wait(0.3) do
+            local currentMob = getMobFunction()
+            if currentMob and currentMob:FindFirstChild("RootPart") then
+                local aimCFrame = currentMob.RootPart.CFrame
+                local randomChoice = math.random(1, 5)
+                
+                if randomChoice == 1 then
+                    playerHandler:FireServer(unpack({ { CombatAction = true, LightAttack = true, MouseData = aimCFrame } }))
+                elseif randomChoice == 2 then
+                    playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
+                elseif randomChoice == 3 then
+                    playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "E", MouseData = aimCFrame } }))
+                elseif randomChoice == 4 then
+                    playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "R", MouseData = aimCFrame } }))
+                elseif randomChoice == 5 then
+                    playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "V", MouseData = aimCFrame } }))
+                end
+            else
+                isTargetActive = false
+            end
         end
     end
 
@@ -771,21 +850,27 @@ end
 -- FUNGSI UTAMA YANG DI-LOOP
 -- ==========================================
 local function mainLoop()
+    local needsHenshin = true -- Status untuk mengecek apakah perlu henshin di awal / setelah mati
+
     while isRunning do
-        -- 0. TUNGGU SPAWN JIKA MATI
+        -- Cek Kematian / Respawn
         if not isAlive() then
             statusSub.Text = "Status: Menunggu Respawn..."
             player.CharacterAdded:Wait()
-            task.wait(2) -- Jeda aman agar char sepenuhnya ter-load
+            task.wait(2)
+            needsHenshin = true -- Jika mati dan respawn, tandai agar henshin ulang dari awal
             if not isRunning then break end
         end
 
-        -- 1. AUTO HENSHIN (Hanya jika hidup)
-        local successHenshin = doAutoHenshin()
-        if not successHenshin then continue end -- Jika mati saat henshin, ulang loop
-        if not isRunning then break end
+        -- 1. AUTO HENSHIN (Hanya berjalan jika baru mulai atau setelah respawn karena mati)
+        if needsHenshin then
+            local successHenshin = doAutoHenshin()
+            if not successHenshin then continue end
+            if not isRunning then break end
+            needsHenshin = false -- Matikan flag agar setelah ini tidak henshin berulang-ulang
+        end
 
-        -- 2. PRE-QUEST BERDASARKAN MODE
+        -- 2. AMBIL QUEST JIKA DI MODE QUEST
         if selectedMode.ModeName == "Yen Farm" then
             statusSub.Text = "Status: Mengambil Quest Ryuga..."
             takeYenFarmQuest()
@@ -797,7 +882,7 @@ local function mainLoop()
             if not isRunning then break end
         end
 
-        -- 3. CREATE LOBBY
+        -- 3. BUAT LOBBY & START DUNGEON
         statusSub.Text = "Status: Membuat " .. selectedDungeon.Name .. " (" .. selectedDiff.Name .. ")"
         if not isAlive() then continue end
         if not isRunning then break end
@@ -881,14 +966,11 @@ local function mainLoop()
             if farmSuccess then farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("CobraSurvive") end return nil end, "CobraSurvive") end
         end
         
-        -- CEK KEMATIAN SAAT FARMING
         if not farmSuccess or not isAlive() then
-            continue -- Jika mati di tengah farming, ulang dari atas
+            continue
         end
         
-        -- ==========================================
-        -- 5. POST-DUNGEON & SELESAI QUEST
-        -- ==========================================
+        -- 5. SIMPAN TOOL ATTACK
         statusSub.Text = "Status: Dungeon Selesai!"
         local activeChar = player.Character
         if activeChar then
@@ -896,15 +978,15 @@ local function mainLoop()
             if equippedTool then equippedTool.Parent = player.Backpack end
         end
         
-        -- ISTIRAHAT SEBELUM MENGEMBALIKAN QUEST
+        -- 6. JEDA ISTIRAHAT 10 DETIK SEBELUM SELESAIKAN QUEST
         for i = 1, 10 do
             if not isRunning or not isAlive() then break end
-            statusSub.Text = "Status: Menunggu Reset " .. (11 - i) .. "s"
+            statusSub.Text = "Status: Istirahat " .. (11 - i) .. "s"
             task.wait(1)
         end
         if not isAlive() then continue end
 
-        -- POST-QUEST BERDASARKAN MODE
+        -- 7. SELESAIKAN QUEST (JIKA MODE QUEST)
         if selectedMode.ModeName == "Yen Farm" and isRunning then
             statusSub.Text = "Status: Menyelesaikan Quest Ryuga..."
             turnInYenFarmQuest()
@@ -914,6 +996,8 @@ local function mainLoop()
             turnInLostSoulQuest()
             if not isAlive() then continue end
         end
+        
+        -- Loop berlanjut langsung ke awal (tanpa Auto Henshin ulang, langsung ambil quest atau buat dungeon baru!)
     end
 end
 
@@ -926,6 +1010,7 @@ toggleButton.MouseButton1Click:Connect(function()
         modeList.Visible = false
         dungeonList.Visible = false
         diffList.Visible = false
+        combatList.Visible = false
         toggleButton.Text = "STOP FARMING"
         TweenService:Create(toggleButton, TweenInfo.new(0.2), {BackgroundColor3 = colorOn}):Play()
         task.spawn(mainLoop)
