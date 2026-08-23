@@ -12,56 +12,88 @@ local player = Players.LocalPlayer
 
 -- Path Remote Event & Function
 local remoteFolder = ReplicatedStorage:WaitForChild("Remote")
-local dialogueEvent = remoteFolder:WaitForChild("Event"):WaitForChild("Dialogue")
-local dungeonQuery = remoteFolder:WaitForChild("Dungeon"):WaitForChild("QueryData")
 local lobbyAction = remoteFolder:WaitForChild("Dungeon"):WaitForChild("LobbyAction")
 local dungeonSession = remoteFolder:WaitForChild("Dungeon"):WaitForChild("Session")
+local dialogueEvent = remoteFolder:WaitForChild("Event"):WaitForChild("Dialogue")
+local dungeonQuery = remoteFolder:WaitForChild("Dungeon"):WaitForChild("QueryData")
+local foundationEvent = remoteFolder:WaitForChild("Event"):WaitForChild("FoundationEventRemote")
 
--- Koordinat Target
-local lokasiPertama = CFrame.new(-1170, 2, -565)
-local lokasiKedua = CFrame.new(-3441, -2, -3178)
+-- Koordinat Target NPC
+local ryugaCoords = CFrame.new(3474, -2, -1704) -- Yen Farm
+local lokasiDojo = CFrame.new(-1170, 2, -565)   -- Lost Soul (DojoStudent)
+local lokasiShoichi = CFrame.new(-3441, -2, -3178) -- Lost Soul (Shoichi)
 
--- Pengaturan Difficulty
-local difficulties = {
-    {Name = "Easy",    Int = 1, Code = "1787387146_6082"},
-    {Name = "Normal",  Int = 2, Code = "1787469221_3721"},
-    {Name = "Hard",    Int = 3, Code = "1787469670_9419"},
-    {Name = "Extreme", Int = 4, Code = "1787469740_5379"}
+-- ==========================================
+-- DATABASE GAME MODES (ALL-IN-ONE)
+-- ==========================================
+local gameModes = {
+    {
+        ModeName = "Trial",
+        Dungeons = {
+            { Name = "Trial of Ancient", Type = "trial", Map = "AncientWorld", Difficulties = { {Name = "Easy", Int = 1}, {Name = "Normal", Int = 2}, {Name = "Hard", Int = 3}, {Name = "Extreme", Int = 4} } },
+            { Name = "Trial of Diend", Type = "trial", Map = "Irreplaceable", Difficulties = { {Name = "Easy", Int = 1}, {Name = "Normal", Int = 2}, {Name = "Hard", Int = 3}, {Name = "Extreme", Int = 4} } },
+            { Name = "Trial of Kiva", Type = "trial", Map = "KivaTrial", Difficulties = { {Name = "Easy", Int = 1}, {Name = "Normal", Int = 2}, {Name = "Hard", Int = 3}, {Name = "Extreme", Int = 4} } },
+            { Name = "Trial of Faiz", Type = "trial", Map = "SmartWorld", Difficulties = { {Name = "Easy", Int = 1}, {Name = "Normal", Int = 2}, {Name = "Hard", Int = 3}, {Name = "Extreme", Int = 4} } },
+            { Name = "Trial of Eternal", Type = "trial", Map = "FoundationWorld", Difficulties = { {Name = "Easy", Int = 1}, {Name = "Normal", Int = 2}, {Name = "Hard", Int = 3}, {Name = "Extreme", Int = 4} } },
+            { Name = "Trial of Build", Type = "trial", Map = "BuildTrial", Difficulties = { {Name = "Easy", Int = 1}, {Name = "Normal", Int = 2}, {Name = "Hard", Int = 3}, {Name = "Extreme", Int = 4} } }
+        }
+    },
+    {
+        ModeName = "Boss Rush",
+        Dungeons = {
+            { Name = "Ancient Rushed", Type = "boss_rush", Map = "AncientRush", Difficulties = { {Name = "Easy", Int = 1}, {Name = "Normal", Int = 2}, {Name = "Hard", Int = 3}, {Name = "Extreme", Int = 4} } },
+            { Name = "Smart Rush", Type = "boss_rush", Map = "SmartRush", Difficulties = { {Name = "Easy", Int = 1}, {Name = "Normal", Int = 2}, {Name = "Hard", Int = 3}, {Name = "Extreme", Int = 4} } },
+            { Name = "Mirror Rush", Type = "boss_rush", Map = "MirrorRush", Difficulties = { {Name = "Easy", Int = 1}, {Name = "Normal", Int = 2}, {Name = "Hard", Int = 3}, {Name = "Extreme", Int = 4} } }
+        }
+    },
+    {
+        ModeName = "Yen Farm",
+        Dungeons = {
+            { Name = "Quest Ryuga (Build)", Type = "trial", Map = "BuildTrial", Difficulties = { {Name = "Easy", Int = 1}, {Name = "Normal", Int = 2}, {Name = "Hard", Int = 3}, {Name = "Extreme", Int = 4} } }
+        }
+    },
+    {
+        ModeName = "Lost Soul Farm",
+        Dungeons = {
+            { Name = "Farm Lost Soul (Ancient)", Type = "trial", Map = "AncientWorld", Difficulties = { {Name = "Easy", Int = 1}, {Name = "Normal", Int = 2}, {Name = "Hard", Int = 3}, {Name = "Extreme", Int = 4} } }
+        }
+    }
 }
-local selectedDiff = difficulties[1] -- Default ke Easy
+
+local selectedMode = gameModes[1]
+local selectedDungeon = selectedMode.Dungeons[1]
+local selectedDiff = selectedDungeon.Difficulties[1]
 
 -- ==========================================
--- PEMBUATAN GUI (MODERN DENGAN DROPDOWN)
+-- PEMBUATAN GUI (MODERN & CLEAN)
 -- ==========================================
-if CoreGui:FindFirstChild("AutoQuestGUI") then
-    CoreGui.AutoQuestGUI:Destroy()
+if CoreGui:FindFirstChild("AutoDungeonGUI") then
+    CoreGui.AutoDungeonGUI:Destroy()
 end
 
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "AutoQuestGUI"
+screenGui.Name = "AutoDungeonGUI"
 screenGui.Parent = CoreGui
 screenGui.ResetOnSpawn = false
 
--- Panel Utama
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
 mainFrame.Parent = screenGui
-mainFrame.BackgroundColor3 = Color3.fromRGB(24, 24, 27) -- Zinc 900
+mainFrame.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
 mainFrame.Position = UDim2.new(0.05, 0, 0.1, 0)
-mainFrame.Size = UDim2.new(0, 240, 0, 185) -- Diperbesar untuk slot Dropdown
+mainFrame.Size = UDim2.new(0, 240, 0, 255)
 mainFrame.BorderSizePixel = 0
-mainFrame.ClipsDescendants = false -- Agar dropdown bisa keluar dari batas frame jika perlu
+mainFrame.ClipsDescendants = false
 
 local cornerMain = Instance.new("UICorner")
 cornerMain.CornerRadius = UDim.new(0, 8)
 cornerMain.Parent = mainFrame
 
 local strokeMain = Instance.new("UIStroke")
-strokeMain.Color = Color3.fromRGB(63, 63, 70) -- Zinc 700
+strokeMain.Color = Color3.fromRGB(63, 63, 70)
 strokeMain.Thickness = 1
 strokeMain.Parent = mainFrame
 
--- Drop Shadow
 local shadow = Instance.new("ImageLabel")
 shadow.Name = "Shadow"
 shadow.Parent = mainFrame
@@ -75,11 +107,10 @@ shadow.ImageTransparency = 0.6
 shadow.ScaleType = Enum.ScaleType.Slice
 shadow.SliceCenter = Rect.new(23, 23, 277, 277)
 
--- Top Bar
 local topBar = Instance.new("Frame")
 topBar.Name = "TopBar"
 topBar.Parent = mainFrame
-topBar.BackgroundColor3 = Color3.fromRGB(39, 39, 42) -- Zinc 800
+topBar.BackgroundColor3 = Color3.fromRGB(39, 39, 42)
 topBar.Size = UDim2.new(1, 0, 0, 36)
 topBar.BorderSizePixel = 0
 topBar.ZIndex = 2
@@ -95,37 +126,23 @@ fixTopBar.Size = UDim2.new(1, 0, 0.5, 0)
 fixTopBar.BorderSizePixel = 0
 fixTopBar.ZIndex = 2
 
-local line = Instance.new("Frame")
-line.Parent = topBar
-line.BackgroundColor3 = Color3.fromRGB(63, 63, 70)
-line.BorderSizePixel = 0
-line.Position = UDim2.new(0, 0, 1, 0)
-line.Size = UDim2.new(1, 0, 0, 1)
-line.ZIndex = 2
-
 local titleLabel = Instance.new("TextLabel")
 titleLabel.Parent = topBar
 titleLabel.BackgroundTransparency = 1
 titleLabel.Position = UDim2.new(0, 12, 0, 0)
 titleLabel.Size = UDim2.new(0, 120, 1, 0)
 titleLabel.Font = Enum.Font.GothamBold
-titleLabel.Text = "LOST SOUL"
+titleLabel.Text = "AUTO DUNGEON"
 titleLabel.TextColor3 = Color3.fromRGB(244, 244, 245)
 titleLabel.TextSize = 13
 titleLabel.TextXAlignment = Enum.TextXAlignment.Left
 titleLabel.ZIndex = 3
 
--- Helper Animasi Tombol
 local function createButtonAnim(btn, normalColor, hoverColor)
-    btn.MouseEnter:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = hoverColor}):Play()
-    end)
-    btn.MouseLeave:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = normalColor}):Play()
-    end)
+    btn.MouseEnter:Connect(function() TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = hoverColor}):Play() end)
+    btn.MouseLeave:Connect(function() TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = normalColor}):Play() end)
 end
 
--- Tombol Close (X)
 local colorCloseN = Color3.fromRGB(239, 68, 68)
 local colorCloseH = Color3.fromRGB(248, 113, 113)
 local closeButton = Instance.new("TextButton")
@@ -144,7 +161,6 @@ cornerClose.CornerRadius = UDim.new(1, 0)
 cornerClose.Parent = closeButton
 createButtonAnim(closeButton, colorCloseN, colorCloseH)
 
--- Tombol Minimize (-)
 local colorMinN = Color3.fromRGB(245, 158, 11)
 local colorMinH = Color3.fromRGB(251, 191, 36)
 local minButton = Instance.new("TextButton")
@@ -163,86 +179,188 @@ cornerMin.CornerRadius = UDim.new(1, 0)
 cornerMin.Parent = minButton
 createButtonAnim(minButton, colorMinN, colorMinH)
 
--- DROPDOWN DIFFICULTY
-local diffButton = Instance.new("TextButton")
-diffButton.Name = "DiffButton"
-diffButton.Parent = mainFrame
-diffButton.BackgroundColor3 = Color3.fromRGB(39, 39, 42)
-diffButton.Position = UDim2.new(0.5, -95, 0, 48)
-diffButton.Size = UDim2.new(0, 190, 0, 32)
-diffButton.Font = Enum.Font.GothamSemibold
-diffButton.Text = "Difficulty: " .. selectedDiff.Name .. " ▼"
-diffButton.TextColor3 = Color3.fromRGB(228, 228, 231)
-diffButton.TextSize = 12
-diffButton.AutoButtonColor = false
-diffButton.ZIndex = 5
+-- ==========================================
+-- DROPDOWN SELECTIONS
+-- ==========================================
+local modeBtn = Instance.new("TextButton")
+modeBtn.Parent = mainFrame
+modeBtn.BackgroundColor3 = Color3.fromRGB(39, 39, 42)
+modeBtn.Position = UDim2.new(0.5, -95, 0, 46)
+modeBtn.Size = UDim2.new(0, 190, 0, 28)
+modeBtn.Font = Enum.Font.GothamSemibold
+modeBtn.Text = "Mode: " .. selectedMode.ModeName .. " ▼"
+modeBtn.TextColor3 = Color3.fromRGB(228, 228, 231)
+modeBtn.TextSize = 11
+modeBtn.AutoButtonColor = false
+modeBtn.ZIndex = 6
+local cornerMode = Instance.new("UICorner")
+cornerMode.CornerRadius = UDim.new(0, 6)
+cornerMode.Parent = modeBtn
+createButtonAnim(modeBtn, Color3.fromRGB(39, 39, 42), Color3.fromRGB(63, 63, 70))
+
+local modeList = Instance.new("Frame")
+modeList.Parent = mainFrame
+modeList.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
+modeList.Position = UDim2.new(0.5, -95, 0, 76)
+modeList.Size = UDim2.new(0, 190, 0, #gameModes * 28)
+modeList.Visible = false
+modeList.ZIndex = 25
+local mlLayout = Instance.new("UIListLayout")
+mlLayout.Parent = modeList
+
+local dungeonBtn = Instance.new("TextButton")
+dungeonBtn.Parent = mainFrame
+dungeonBtn.BackgroundColor3 = Color3.fromRGB(39, 39, 42)
+dungeonBtn.Position = UDim2.new(0.5, -95, 0, 78)
+dungeonBtn.Size = UDim2.new(0, 190, 0, 28)
+dungeonBtn.Font = Enum.Font.GothamSemibold
+dungeonBtn.Text = "Map: " .. selectedDungeon.Name .. " ▼"
+dungeonBtn.TextColor3 = Color3.fromRGB(228, 228, 231)
+dungeonBtn.TextSize = 11
+dungeonBtn.AutoButtonColor = false
+dungeonBtn.ZIndex = 5
+local cornerDung = Instance.new("UICorner")
+cornerDung.CornerRadius = UDim.new(0, 6)
+cornerDung.Parent = dungeonBtn
+createButtonAnim(dungeonBtn, Color3.fromRGB(39, 39, 42), Color3.fromRGB(63, 63, 70))
+
+local dungeonList = Instance.new("Frame")
+dungeonList.Parent = mainFrame
+dungeonList.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
+dungeonList.Position = UDim2.new(0.5, -95, 0, 108)
+dungeonList.Size = UDim2.new(0, 190, 0, 110)
+dungeonList.Visible = false
+dungeonList.ZIndex = 20
+local scrollDL = Instance.new("ScrollingFrame")
+scrollDL.Parent = dungeonList
+scrollDL.Size = UDim2.new(1, 0, 1, 0)
+scrollDL.BackgroundTransparency = 1
+scrollDL.ScrollBarThickness = 4
+local dlLayout = Instance.new("UIListLayout")
+dlLayout.Parent = scrollDL
+
+local diffBtn = Instance.new("TextButton")
+diffBtn.Parent = mainFrame
+diffBtn.BackgroundColor3 = Color3.fromRGB(39, 39, 42)
+diffBtn.Position = UDim2.new(0.5, -95, 0, 110)
+diffBtn.Size = UDim2.new(0, 190, 0, 28)
+diffBtn.Font = Enum.Font.GothamSemibold
+diffBtn.Text = "Diff: " .. selectedDiff.Name .. " ▼"
+diffBtn.TextColor3 = Color3.fromRGB(228, 228, 231)
+diffBtn.TextSize = 11
+diffBtn.AutoButtonColor = false
+diffBtn.ZIndex = 4
 local cornerDiff = Instance.new("UICorner")
 cornerDiff.CornerRadius = UDim.new(0, 6)
-cornerDiff.Parent = diffButton
-local strokeDiff = Instance.new("UIStroke")
-strokeDiff.Color = Color3.fromRGB(63, 63, 70)
-strokeDiff.Thickness = 1
-strokeDiff.Parent = diffButton
-createButtonAnim(diffButton, Color3.fromRGB(39, 39, 42), Color3.fromRGB(63, 63, 70))
+cornerDiff.Parent = diffBtn
+createButtonAnim(diffBtn, Color3.fromRGB(39, 39, 42), Color3.fromRGB(63, 63, 70))
 
-local dropdownList = Instance.new("Frame")
-dropdownList.Name = "DropdownList"
-dropdownList.Parent = mainFrame
-dropdownList.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
-dropdownList.Position = UDim2.new(0.5, -95, 0, 82)
-dropdownList.Size = UDim2.new(0, 190, 0, #difficulties * 28)
-dropdownList.Visible = false
-dropdownList.ZIndex = 10
-local cornerList = Instance.new("UICorner")
-cornerList.CornerRadius = UDim.new(0, 6)
-cornerList.Parent = dropdownList
-local strokeList = Instance.new("UIStroke")
-strokeList.Color = Color3.fromRGB(82, 82, 91)
-strokeList.Thickness = 1
-strokeList.Parent = dropdownList
-local listLayout = Instance.new("UIListLayout")
-listLayout.Parent = dropdownList
-listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+local diffList = Instance.new("Frame")
+diffList.Parent = mainFrame
+diffList.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
+diffList.Position = UDim2.new(0.5, -95, 0, 140)
+diffList.Size = UDim2.new(0, 190, 0, 100)
+diffList.Visible = false
+diffList.ZIndex = 15
+local dl2Layout = Instance.new("UIListLayout")
+dl2Layout.Parent = diffList
 
--- Isi Dropdown
-for i, diff in ipairs(difficulties) do
+local function updateDungeonList()
+    for _, child in pairs(scrollDL:GetChildren()) do
+        if child:IsA("TextButton") then child:Destroy() end
+    end
+    scrollDL.CanvasSize = UDim2.new(0, 0, 0, #selectedMode.Dungeons * 28)
+    
+    for i, dng in ipairs(selectedMode.Dungeons) do
+        local item = Instance.new("TextButton")
+        item.Parent = scrollDL
+        item.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
+        item.Size = UDim2.new(1, 0, 0, 28)
+        item.Font = Enum.Font.Gotham
+        item.Text = dng.Name
+        item.TextColor3 = Color3.fromRGB(212, 212, 216)
+        item.TextSize = 11
+        item.AutoButtonColor = false
+        item.ZIndex = 21
+        createButtonAnim(item, Color3.fromRGB(24, 24, 27), Color3.fromRGB(63, 63, 70))
+        item.MouseButton1Click:Connect(function()
+            selectedDungeon = dng
+            selectedDiff = dng.Difficulties[1]
+            dungeonBtn.Text = "Map: " .. dng.Name .. " ▼"
+            dungeonList.Visible = false
+            updateDiffList()
+        end)
+    end
+    selectedDungeon = selectedMode.Dungeons[1]
+    dungeonBtn.Text = "Map: " .. selectedDungeon.Name .. " ▼"
+end
+
+local function updateDiffList()
+    for _, child in pairs(diffList:GetChildren()) do
+        if child:IsA("TextButton") then child:Destroy() end
+    end
+    diffList.Size = UDim2.new(0, 190, 0, #selectedDungeon.Difficulties * 28)
+    for i, df in ipairs(selectedDungeon.Difficulties) do
+        local item = Instance.new("TextButton")
+        item.Parent = diffList
+        item.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
+        item.Size = UDim2.new(1, 0, 0, 28)
+        item.Font = Enum.Font.Gotham
+        item.Text = df.Name
+        item.TextColor3 = Color3.fromRGB(212, 212, 216)
+        item.TextSize = 11
+        item.AutoButtonColor = false
+        item.ZIndex = 16
+        createButtonAnim(item, Color3.fromRGB(24, 24, 27), Color3.fromRGB(63, 63, 70))
+        item.MouseButton1Click:Connect(function()
+            selectedDiff = df
+            diffBtn.Text = "Diff: " .. df.Name .. " ▼"
+            diffList.Visible = false
+        end)
+    end
+    selectedDiff = selectedDungeon.Difficulties[1]
+    diffBtn.Text = "Diff: " .. selectedDiff.Name .. " ▼"
+end
+
+for i, mObj in ipairs(gameModes) do
     local item = Instance.new("TextButton")
-    item.Name = diff.Name
-    item.Parent = dropdownList
+    item.Parent = modeList
     item.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
     item.Size = UDim2.new(1, 0, 0, 28)
     item.Font = Enum.Font.Gotham
-    item.Text = diff.Name
+    item.Text = mObj.ModeName
     item.TextColor3 = Color3.fromRGB(212, 212, 216)
-    item.TextSize = 12
+    item.TextSize = 11
     item.AutoButtonColor = false
-    item.ZIndex = 11
-    item.LayoutOrder = i
-    
+    item.ZIndex = 26
     createButtonAnim(item, Color3.fromRGB(24, 24, 27), Color3.fromRGB(63, 63, 70))
-    
     item.MouseButton1Click:Connect(function()
-        selectedDiff = diff
-        diffButton.Text = "Difficulty: " .. diff.Name .. " ▼"
-        dropdownList.Visible = false
+        selectedMode = mObj
+        modeBtn.Text = "Mode: " .. mObj.ModeName .. " ▼"
+        modeList.Visible = false
+        updateDungeonList()
+        updateDiffList()
     end)
 end
 
-diffButton.MouseButton1Click:Connect(function()
-    dropdownList.Visible = not dropdownList.Visible
-end)
+updateDungeonList()
+updateDiffList()
 
--- Warna Status Toggle
-local colorOff = Color3.fromRGB(239, 68, 68) -- Red
-local colorOn = Color3.fromRGB(16, 185, 129) -- Emerald
+modeBtn.MouseButton1Click:Connect(function() modeList.Visible = not modeList.Visible dungeonList.Visible = false diffList.Visible = false end)
+dungeonBtn.MouseButton1Click:Connect(function() dungeonList.Visible = not dungeonList.Visible modeList.Visible = false diffList.Visible = false end)
+diffBtn.MouseButton1Click:Connect(function() diffList.Visible = not diffList.Visible modeList.Visible = false dungeonList.Visible = false end)
 
--- Tombol Toggle ON/OFF
+-- ==========================================
+-- TOMBOL UTAMA (START/STOP) & DRAG
+-- ==========================================
+local colorOff = Color3.fromRGB(239, 68, 68)
+local colorOn = Color3.fromRGB(16, 185, 129)
+
 local toggleButton = Instance.new("TextButton")
-toggleButton.Name = "ToggleButton"
 toggleButton.Parent = mainFrame
 toggleButton.BackgroundColor3 = colorOff
-toggleButton.Position = UDim2.new(0.5, -95, 0, 90) -- Digeser ke bawah karena ada dropdown
-toggleButton.Size = UDim2.new(0, 190, 0, 42)
+toggleButton.Position = UDim2.new(0.5, -95, 0, 150)
+toggleButton.Size = UDim2.new(0, 190, 0, 38)
 toggleButton.Font = Enum.Font.GothamBold
 toggleButton.Text = "START FARMING"
 toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -253,28 +371,18 @@ local cornerToggle = Instance.new("UICorner")
 cornerToggle.CornerRadius = UDim.new(0, 6)
 cornerToggle.Parent = toggleButton
 
-toggleButton.MouseEnter:Connect(function()
-    TweenService:Create(toggleButton, TweenInfo.new(0.15), {Size = UDim2.new(0, 194, 0, 46), Position = UDim2.new(0.5, -97, 0, 88)}):Play()
-end)
-toggleButton.MouseLeave:Connect(function()
-    TweenService:Create(toggleButton, TweenInfo.new(0.15), {Size = UDim2.new(0, 190, 0, 42), Position = UDim2.new(0.5, -95, 0, 90)}):Play()
-end)
-
--- Status Sub-text
 local statusSub = Instance.new("TextLabel")
 statusSub.Parent = mainFrame
 statusSub.BackgroundTransparency = 1
-statusSub.Position = UDim2.new(0, 0, 0, 145)
+statusSub.Position = UDim2.new(0, 0, 0, 205)
 statusSub.Size = UDim2.new(1, 0, 0, 20)
 statusSub.Font = Enum.Font.Gotham
 statusSub.Text = "Status: IDLE"
 statusSub.TextColor3 = Color3.fromRGB(161, 161, 170)
-statusSub.TextSize = 12
+statusSub.TextSize = 11
 statusSub.ZIndex = 2
 
--- Tombol Bulat Minimized
 local minBubble = Instance.new("TextButton")
-minBubble.Name = "MinimizedBubble"
 minBubble.Parent = screenGui
 minBubble.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
 minBubble.Position = UDim2.new(0.05, 0, 0.1, 0)
@@ -295,29 +403,19 @@ strokeBubble.Parent = minBubble
 
 local isRunning = false
 
--- ==========================================
--- CUSTOM SMOOTH DRAGGING SYSTEM (BUG FIX)
--- ==========================================
+-- CUSTOM DRAG (BUG FIX)
 local dragging, dragInput, dragStart, startPos
 topBar.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
         dragStart = input.Position
         startPos = mainFrame.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
+        input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
     end
 end)
-
 topBar.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-        dragInput = input
-    end
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end
 end)
-
 UserInputService.InputChanged:Connect(function(input)
     if input == dragInput and dragging then
         local delta = input.Position - dragStart
@@ -327,14 +425,12 @@ end)
 
 local draggingBubble, dragInputBubble, dragStartBubble, startPosBubble
 local isActuallyDraggingBubble = false
-
 minBubble.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         draggingBubble = true
         isActuallyDraggingBubble = false
         dragStartBubble = input.Position
         startPosBubble = minBubble.Position
-        
         local con
         con = input.Changed:Connect(function()
             if input.UserInputState == Enum.UserInputState.End then
@@ -349,71 +445,114 @@ minBubble.InputBegan:Connect(function(input)
         end)
     end
 end)
-
 minBubble.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-        dragInputBubble = input
-    end
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInputBubble = input end
 end)
-
 UserInputService.InputChanged:Connect(function(input)
     if input == dragInputBubble and draggingBubble then
         local delta = input.Position - dragStartBubble
-        if math.abs(delta.X) > 5 or math.abs(delta.Y) > 5 then
-            isActuallyDraggingBubble = true
-        end
-        if isActuallyDraggingBubble then
-            minBubble.Position = UDim2.new(startPosBubble.X.Scale, startPosBubble.X.Offset + delta.X, startPosBubble.Y.Scale, startPosBubble.Y.Offset + delta.Y)
-        end
+        if math.abs(delta.X) > 5 or math.abs(delta.Y) > 5 then isActuallyDraggingBubble = true end
+        if isActuallyDraggingBubble then minBubble.Position = UDim2.new(startPosBubble.X.Scale, startPosBubble.X.Offset + delta.X, startPosBubble.Y.Scale, startPosBubble.Y.Offset + delta.Y) end
     end
 end)
 
--- ==========================================
--- FUNGSI KONTROL GUI
--- ==========================================
-closeButton.MouseButton1Click:Connect(function()
-    isRunning = false
-    screenGui:Destroy()
-end)
-
-minButton.MouseButton1Click:Connect(function()
-    dropdownList.Visible = false -- Tutup dropdown jika minimize
-    minBubble.Position = UDim2.new(0, mainFrame.AbsolutePosition.X, 0, mainFrame.AbsolutePosition.Y)
-    mainFrame.Visible = false
-    minBubble.Visible = true
-end)
+closeButton.MouseButton1Click:Connect(function() isRunning = false screenGui:Destroy() end)
+minButton.MouseButton1Click:Connect(function() modeList.Visible = false dungeonList.Visible = false diffList.Visible = false minBubble.Position = UDim2.new(0, mainFrame.AbsolutePosition.X, 0, mainFrame.AbsolutePosition.Y) mainFrame.Visible = false minBubble.Visible = true end)
 
 -- ==========================================
--- FUNGSI BANTUAN DIALOG & PROXIMITY
+-- FUNGSI BANTUAN & DEATH DETECTION
 -- ==========================================
+
+-- Mengecek apakah karakter masih hidup
+local function isAlive()
+    local char = player.Character
+    if not char then return false end
+    local hum = char:FindFirstChild("Humanoid")
+    if not hum or hum.Health <= 0 then return false end
+    return true
+end
+
+-- Fungsi Auto Henshin Lengkap
+local function doAutoHenshin()
+    if not isAlive() then return false end
+    statusSub.Text = "Status: Auto Henshin 1..."
+    
+    local char = player.Character or player.CharacterAdded:Wait()
+    local playerHandler = char:WaitForChild("PlayerHandler"):WaitForChild("HandlerEvent")
+    
+    if playerHandler then
+        playerHandler:FireServer(unpack({ { Henshin = true } }))
+    end
+    
+    for i = 1, 8 do
+        if not isRunning or not isAlive() then return false end
+        task.wait(1)
+    end
+    
+    statusSub.Text = "Status: Auto Henshin 2..."
+    if foundationEvent then
+        foundationEvent:FireServer(unpack({ { ActiveForm = "Extreme", ActiveRider = true } }))
+    end
+    
+    for i = 1, 8 do
+        if not isRunning or not isAlive() then return false end
+        task.wait(1)
+    end
+    
+    return true
+end
+
 local function triggerNPC(npcName)
     local npcFolder = workspace:WaitForChild("NPC", 5)
     if npcFolder and npcFolder:FindFirstChild(npcName) then
-        local prompt = npcFolder[npcName]:FindFirstChild("ProximityPrompt")
+        local prompt = npcFolder[npcName]:FindFirstChild("ProximityPrompt") or npcFolder[npcName]:FindFirstChildWhichIsA("ProximityPrompt", true)
         if prompt and fireproximityprompt then
             fireproximityprompt(prompt)
             task.wait(0.5)
         end
+    else
+        warn("[!] NPC " .. npcName .. " tidak ditemukan di workspace!")
     end
 end
 
-local function alurAwalSetup()
-    if not isRunning then return end
-    statusSub.Text = "Status: Mengambil Quest..."
+-- PRE-QUEST: Ambil Quest Yen Farm
+local function takeYenFarmQuest()
+    local char = player.Character or player.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart")
     
-    local character = player.Character or player.CharacterAdded:Wait()
-    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-
-    if humanoidRootPart then
-        humanoidRootPart.CFrame = lokasiPertama * CFrame.new(0, 3, 0)
+    if (hrp.Position - ryugaCoords.Position).Magnitude > 20 then
+        hrp.CFrame = ryugaCoords
+        task.wait(1)
     end
-    task.wait(1)
     
-    if not isRunning then return end
+    if not isRunning or not isAlive() then return end
+    triggerNPC("Ryuga")
+    task.wait(0.5)
+    dialogueEvent:FireServer(unpack({ { Choice = "[ Repeatable Quest ]" } }))
+    task.wait(0.5)
+    dialogueEvent:FireServer(unpack({ { Exit = true } }))
+    task.wait(0.5)
+    
+    if not isRunning or not isAlive() then return end
+    triggerNPC("Ryuga")
+    task.wait(0.5)
+    dialogueEvent:FireServer(unpack({ { Choice = "[ Challenge Build ]" } }))
+    task.wait(0.5)
+    dialogueEvent:FireServer(unpack({ { Exit = true } }))
+    task.wait(0.5)
+end
+
+-- PRE-QUEST: Ambil Quest Lost Soul
+local function takeLostSoulQuest()
+    local char = player.Character or player.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart")
+
+    if hrp then hrp.CFrame = lokasiDojo * CFrame.new(0, 3, 0) end
+    task.wait(1.5)
+    
+    if not isRunning or not isAlive() then return end
     triggerNPC("DojoStudent")
     task.wait(1)
-    
-    if not isRunning then return end
     dialogueEvent:FireServer(unpack({ { Choice = "Sure.." } }))
     task.wait(0.5)
     dialogueEvent:FireServer(unpack({ { Choice = "Ancient Argument" } }))
@@ -421,15 +560,11 @@ local function alurAwalSetup()
     dialogueEvent:FireServer(unpack({ { Choice = "Start 'Ancient Argument'" } }))
     task.wait(1)
     
-    if not isRunning then return end
-    local currentCharacter = player.Character or player.CharacterAdded:Wait()
-    local currentHRP = currentCharacter:WaitForChild("HumanoidRootPart")
-    if currentHRP then
-        currentHRP.CFrame = lokasiKedua * CFrame.new(0, 3, 0)
-    end
+    if not isRunning or not isAlive() then return end
+    if hrp then hrp.CFrame = lokasiShoichi * CFrame.new(0, 3, 0) end
     task.wait(1.5)
     
-    if not isRunning then return end
+    if not isRunning or not isAlive() then return end
     triggerNPC("Shoichi")
     task.wait(1)
     dungeonQuery:InvokeServer(unpack({ "lobbies" }))
@@ -440,14 +575,86 @@ local function alurAwalSetup()
     task.wait(0.5)
 end
 
+-- POST-QUEST: Selesaikan Yen Farm
+local function turnInYenFarmQuest()
+    local char = player.Character or player.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart")
+    
+    if hrp then hrp.CFrame = ryugaCoords end
+    task.wait(1)
+    
+    if not isRunning or not isAlive() then return end
+    triggerNPC("Ryuga")
+    task.wait(0.5)
+    dialogueEvent:FireServer(unpack({ { Choice = "[ Repeatable Quest ]" } }))
+    task.wait(0.5)
+    dialogueEvent:FireServer(unpack({ { Exit = true } }))
+    task.wait(0.5)
+    
+    if not isRunning or not isAlive() then return end
+    triggerNPC("Ryuga")
+    task.wait(0.5)
+    dialogueEvent:FireServer(unpack({ { Choice = "[ Challenge Build ]" } }))
+    task.wait(0.5)
+    dialogueEvent:FireServer(unpack({ { Exit = true } }))
+    task.wait(0.5)
+end
+
+-- POST-QUEST: Selesaikan Lost Soul
+local function turnInLostSoulQuest()
+    local char = player.Character or player.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart")
+
+    if hrp then hrp.CFrame = lokasiDojo * CFrame.new(0, 3, 0) end
+    task.wait(1.5)
+    if not isRunning or not isAlive() then return end
+
+    triggerNPC("DojoStudent")
+    task.wait(1)
+    dialogueEvent:FireServer(unpack({ { Choice = "Yes, I've completed it." } }))
+    task.wait(1)
+    dialogueEvent:FireServer(unpack({ { Choice = "Can I get another quest?" } }))
+    task.wait(1)
+    dialogueEvent:FireServer(unpack({ { Choice = "Ancient Argument" } }))
+    task.wait(1)
+    dialogueEvent:FireServer(unpack({ { Choice = "Start 'Ancient Argument'" } }))
+    task.wait(1)
+    
+    if not isRunning or not isAlive() then return end
+    if hrp then hrp.CFrame = lokasiShoichi * CFrame.new(0, 3, 0) end
+    task.wait(1.5)
+    if not isRunning or not isAlive() then return end
+
+    triggerNPC("Shoichi")
+    task.wait(1)
+    dialogueEvent:FireServer(unpack({ { Choice = "[ Challenge ]" } }))
+    task.wait(0.5)
+    dialogueEvent:FireServer(unpack({ { Choice = "[ Quest ]" } }))
+    task.wait(0.5)
+    dialogueEvent:FireServer(unpack({ { Exit = true } }))
+    task.wait(1)
+    
+    if not isRunning or not isAlive() then return end
+    triggerNPC("Shoichi")
+    task.wait(1)
+    dialogueEvent:FireServer(unpack({ { Choice = "[ Challenge ]" } }))
+    task.wait(0.5)
+    dialogueEvent:FireServer(unpack({ { Choice = "[ Quest ]" } }))
+    task.wait(0.5)
+    dialogueEvent:FireServer(unpack({ { Exit = true } }))
+    task.wait(1.5)
+end
+
+-- ==========================================
+-- FUNGSI COMBAT & MAGNET
+-- ==========================================
 local function farmSpecificMob(getMobFunction, mobName, timeout)
     statusSub.Text = "Status: Scan " .. mobName .. "..."
-    
     local targetMob = nil
     local timeWaited = 0
     local isFound = false
 
-    while isRunning and task.wait(0.2) do
+    while isRunning and isAlive() and task.wait(0.2) do
         targetMob = getMobFunction()
         if targetMob and targetMob:FindFirstChild("RootPart") then
             local hum = targetMob:FindFirstChild("Humanoid")
@@ -456,39 +663,33 @@ local function farmSpecificMob(getMobFunction, mobName, timeout)
                 break
             end
         end
-        
         if timeout then
             timeWaited = timeWaited + 0.2
             if timeWaited >= timeout then
                 statusSub.Text = mobName .. " di-Skip!"
-                return
+                return true
             end
         end
     end
     
-    if not isRunning or not isFound then return end
-    statusSub.Text = "Status: Farming " .. mobName .. " ⚔️"
+    if not isRunning or not isAlive() or not isFound then return false end
+    statusSub.Text = "Farming: " .. mobName .. " ⚔️"
 
     local isTargetActive = true
-    
     local magnetConnection
     magnetConnection = RunService.Heartbeat:Connect(function()
-        if not isTargetActive or not isRunning then return end
-        
+        if not isTargetActive or not isRunning or not isAlive() then return end
         local currentMob = getMobFunction()
         if currentMob then
             local targetRoot = currentMob:FindFirstChild("RootPart")
             local targetHumanoid = currentMob:FindFirstChild("Humanoid")
-            
             local currentChar = player.Character
             local currentHRP = currentChar and currentChar:FindFirstChild("HumanoidRootPart")
 
             if currentHRP and targetRoot and (not targetHumanoid or targetHumanoid.Health > 0) then
                 currentHRP.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
                 currentHRP.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-                
-                local posisiTarget = targetRoot.CFrame * CFrame.new(0, 0, 3)
-                currentChar:PivotTo(posisiTarget)
+                currentChar:PivotTo(targetRoot.CFrame * CFrame.new(0, 0, 3))
             elseif targetHumanoid and targetHumanoid.Health <= 0 then
                 isTargetActive = false
             end
@@ -498,7 +699,7 @@ local function farmSpecificMob(getMobFunction, mobName, timeout)
     end)
 
     task.spawn(function()
-        while isTargetActive and isRunning do
+        while isTargetActive and isRunning and isAlive() do
             local characterRef = player.Character
             if characterRef and characterRef:FindFirstChild("PlayerHandler") then
                 local playerHandler = characterRef.PlayerHandler:FindFirstChild("HandlerEvent")
@@ -512,19 +713,17 @@ local function farmSpecificMob(getMobFunction, mobName, timeout)
 
     local lastSkill1Time = 0 
     local lastSkill2Time = 0 
-    
     local characterRef = player.Character or player.CharacterAdded:Wait()
     local playerHandler = characterRef:WaitForChild("PlayerHandler"):WaitForChild("HandlerEvent")
 
-    while isTargetActive and isRunning and task.wait() do
+    while isTargetActive and isRunning and isAlive() and task.wait() do
         local currentMob = getMobFunction()
         if currentMob and currentMob:FindFirstChild("RootPart") then
-            local targetRoot = currentMob.RootPart
-            local aimCFrame = targetRoot.CFrame 
+            local aimCFrame = currentMob.RootPart.CFrame 
 
             playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
             task.wait(2)
-            if not isTargetActive or not isRunning then break end
+            if not isTargetActive or not isRunning or not isAlive() then break end
 
             if tick() - lastSkill1Time >= 10 then
                 playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "E", MouseData = aimCFrame } }))
@@ -534,15 +733,15 @@ local function farmSpecificMob(getMobFunction, mobName, timeout)
                 playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
                 task.wait(2)
             end
-            if not isTargetActive or not isRunning then break end
+            if not isTargetActive or not isRunning or not isAlive() then break end
 
             playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
             task.wait(2)
-            if not isTargetActive or not isRunning then break end
+            if not isTargetActive or not isRunning or not isAlive() then break end
 
             playerHandler:FireServer(unpack({ { CombatAction = true, LightAttack = true, MouseData = aimCFrame } }))
             task.wait(0.2)
-            if not isTargetActive or not isRunning then break end
+            if not isTargetActive or not isRunning or not isAlive() then break end
 
             if tick() - lastSkill2Time >= 15 then
                 playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "R", MouseData = aimCFrame } }))
@@ -552,46 +751,75 @@ local function farmSpecificMob(getMobFunction, mobName, timeout)
                 playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
                 task.wait(2)
             end
-            if not isTargetActive or not isRunning then break end
+            if not isTargetActive or not isRunning or not isAlive() then break end
 
             playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
             task.wait(2)
-            if not isTargetActive or not isRunning then break end
-
         else
             isTargetActive = false
         end
     end
 
-    if magnetConnection then
-        magnetConnection:Disconnect()
-    end
+    if magnetConnection then magnetConnection:Disconnect() end
     task.wait(0.3)
+    
+    if not isAlive() then return false end
+    return true
 end
 
 -- ==========================================
 -- FUNGSI UTAMA YANG DI-LOOP
 -- ==========================================
 local function mainLoop()
-    alurAwalSetup()
-
     while isRunning do
-        statusSub.Text = "Status: Membuat Lobby (" .. selectedDiff.Name .. ")"
-        
+        -- 0. TUNGGU SPAWN JIKA MATI
+        if not isAlive() then
+            statusSub.Text = "Status: Menunggu Respawn..."
+            player.CharacterAdded:Wait()
+            task.wait(2) -- Jeda aman agar char sepenuhnya ter-load
+            if not isRunning then break end
+        end
+
+        -- 1. AUTO HENSHIN (Hanya jika hidup)
+        local successHenshin = doAutoHenshin()
+        if not successHenshin then continue end -- Jika mati saat henshin, ulang loop
         if not isRunning then break end
-        -- Menggunakan value Int dari Dropdown (1=Easy, 2=Normal, 3=Hard, 4=Extreme)
-        lobbyAction:InvokeServer(unpack({ "create", "public", "trial", "AncientWorld", 2, selectedDiff.Int }))
+
+        -- 2. PRE-QUEST BERDASARKAN MODE
+        if selectedMode.ModeName == "Yen Farm" then
+            statusSub.Text = "Status: Mengambil Quest Ryuga..."
+            takeYenFarmQuest()
+            if not isAlive() then continue end
+            if not isRunning then break end
+        elseif selectedMode.ModeName == "Lost Soul Farm" then
+            takeLostSoulQuest()
+            if not isAlive() then continue end
+            if not isRunning then break end
+        end
+
+        -- 3. CREATE LOBBY
+        statusSub.Text = "Status: Membuat " .. selectedDungeon.Name .. " (" .. selectedDiff.Name .. ")"
+        if not isAlive() then continue end
+        if not isRunning then break end
+        
+        local sessionID = lobbyAction:InvokeServer("create", "public", selectedDungeon.Type, selectedDungeon.Map, 2, selectedDiff.Int)
         task.wait(1)
-        if not isRunning then break end
         
-        lobbyAction:InvokeServer(unpack({ "start" }))
+        if not isAlive() then continue end
+        if not isRunning then break end
+        lobbyAction:InvokeServer("start")
         task.wait(2)
-        if not isRunning then break end
         
-        -- Menggunakan value Code Ready dari Dropdown
-        dungeonSession:FireServer(unpack({ "Ready", selectedDiff.Code }))
+        if not isAlive() then continue end
+        if not isRunning then break end
+        if sessionID then
+            dungeonSession:FireServer("Ready", sessionID)
+        else
+            dungeonSession:FireServer("Ready")
+        end
         
         task.wait(3)
+        if not isAlive() then continue end
         if not isRunning then break end
         
         local currentCharacter = player.Character or player.CharacterAdded:Wait()
@@ -600,38 +828,67 @@ local function mainLoop()
             currentCharacter:WaitForChild("Humanoid"):EquipTool(attackTool)
         end
 
-        -- 1. KUGHA
-        if not isRunning then break end
-        farmSpecificMob(function()
-            if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Kugha") end
-            return nil
-        end, "Kugha")
+        -- ==========================================
+        -- 4. LOGIKA MONSTER BERCABANG BERDASARKAN MAP
+        -- ==========================================
+        local mapStr = selectedDungeon.Map
+        local farmSuccess = true
+        
+        if mapStr == "AncientWorld" then
+            farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Kugha") end return nil end, "Kugha")
+            if farmSuccess then task.wait(1.5) farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("FlyingXugo") end return nil end, "FlyingXugo", 3) end
+            if farmSuccess then farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Agito") end return nil end, "Agito") end
+            if farmSuccess then farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Daguba") end return nil end, "Daguba") end
 
-        -- 2. FLYING XUGO
-        if not isRunning then break end
-        task.wait(1.5) 
-        if workspace:FindFirstChild("Mobs") and workspace.Mobs:FindFirstChild("FlyingXugo") then
-            farmSpecificMob(function()
-                if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("FlyingXugo") end
-                return nil
-            end, "FlyingXugo", 3)
+        elseif mapStr == "Irreplaceable" then
+            farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Momotaros") end return nil end, "Momotaros")
+            if farmSuccess then farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Diend") end return nil end, "Diend (Fase 1)") end
+            if farmSuccess then task.wait(1.5) farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Diend") end return nil end, "Diend (Fase 2)") end
+
+        elseif mapStr == "KivaTrial" then
+            farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Rook") end return nil end, "Rook")
+            if farmSuccess then farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Bishop") end return nil end, "Bishop") end
+            if farmSuccess then farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Kiva") end return nil end, "Kiva") end
+
+        elseif mapStr == "SmartWorld" then
+            farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Zyga") end return nil end, "Zyga")
+            if farmSuccess then farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Elasther") end return nil end, "Elasther") end
+            if farmSuccess then farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Orca") end return nil end, "Orca") end
+
+        elseif mapStr == "FoundationWorld" then
+            farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Double") end return nil end, "Double")
+            if farmSuccess then farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("FoundationChief") end return nil end, "FoundationChief") end
+            if farmSuccess then farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Ethernal") end return nil end, "Ethernal") end
+
+        elseif mapStr == "BuildTrial" then
+            farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Utsumi") end return nil end, "Utsumi")
+            if farmSuccess then farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("MadIsurugi") end return nil end, "MadIsurugi") end
+            if farmSuccess then farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Build") end return nil end, "Build") end
+
+        elseif mapStr == "AncientRush" then
+            farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Kugha") end return nil end, "Kugha")
+            if farmSuccess then farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Daguba") end return nil end, "Daguba") end
+            if farmSuccess then farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("KuugaUltimated") end return nil end, "KuugaUltimated") end
+
+        elseif mapStr == "SmartRush" then
+            farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("FaizBlaster") end return nil end, "FaizBlaster")
+            if farmSuccess then farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Elasther") end return nil end, "Elasther") end
+            if farmSuccess then farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Orca") end return nil end, "Orca") end
+
+        elseif mapStr == "MirrorRush" then
+            farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Odin") end return nil end, "Odin")
+            if farmSuccess then farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("CobraUnited") end return nil end, "CobraUnited") end
+            if farmSuccess then farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("CobraSurvive") end return nil end, "CobraSurvive") end
         end
-
-        -- 3. AGITO
-        if not isRunning then break end
-        farmSpecificMob(function()
-            if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Agito") end
-            return nil
-        end, "Agito")
-
-        -- 4. DAGUBA
-        if not isRunning then break end
-        farmSpecificMob(function()
-            if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Daguba") end
-            return nil
-        end, "Daguba")
-
-        -- SELESAI DUNGEON
+        
+        -- CEK KEMATIAN SAAT FARMING
+        if not farmSuccess or not isAlive() then
+            continue -- Jika mati di tengah farming, ulang dari atas
+        end
+        
+        -- ==========================================
+        -- 5. POST-DUNGEON & SELESAI QUEST
+        -- ==========================================
         statusSub.Text = "Status: Dungeon Selesai!"
         local activeChar = player.Character
         if activeChar then
@@ -639,58 +896,24 @@ local function mainLoop()
             if equippedTool then equippedTool.Parent = player.Backpack end
         end
         
+        -- ISTIRAHAT SEBELUM MENGEMBALIKAN QUEST
         for i = 1, 10 do
-            if not isRunning then break end
-            statusSub.Text = "Status: Istirahat " .. (11 - i) .. "s"
+            if not isRunning or not isAlive() then break end
+            statusSub.Text = "Status: Menunggu Reset " .. (11 - i) .. "s"
             task.wait(1)
         end
-        if not isRunning then break end
+        if not isAlive() then continue end
 
-        -- 7. TURN IN QUEST
-        statusSub.Text = "Status: Turn-in Quest..."
-        local freshChar = player.Character or player.CharacterAdded:Wait()
-        local freshHRP = freshChar:WaitForChild("HumanoidRootPart")
-        if freshHRP then freshHRP.CFrame = lokasiPertama * CFrame.new(0, 3, 0) end
-        task.wait(1)
-        if not isRunning then break end
-
-        triggerNPC("DojoStudent")
-        task.wait(1)
-        if not isRunning then break end
-        
-        dialogueEvent:FireServer(unpack({ { Choice = "Yes, I've completed it." } }))
-        task.wait(1)
-        dialogueEvent:FireServer(unpack({ { Choice = "Can I get another quest?" } }))
-        task.wait(1)
-        dialogueEvent:FireServer(unpack({ { Choice = "Ancient Argument" } }))
-        task.wait(1)
-        dialogueEvent:FireServer(unpack({ { Choice = "Start 'Ancient Argument'" } }))
-        task.wait(1)
-        if not isRunning then break end
-
-        -- 8. KEMBALI KE SHOICHI
-        if freshHRP then freshHRP.CFrame = lokasiKedua * CFrame.new(0, 3, 0) end
-        task.wait(1.5)
-        if not isRunning then break end
-
-        triggerNPC("Shoichi")
-        task.wait(1)
-        dialogueEvent:FireServer(unpack({ { Choice = "[ Challenge ]" } }))
-        task.wait(0.5)
-        dialogueEvent:FireServer(unpack({ { Choice = "[ Quest ]" } }))
-        task.wait(0.5)
-        dialogueEvent:FireServer(unpack({ { Exit = true } }))
-        task.wait(1)
-        if not isRunning then break end
-
-        triggerNPC("Shoichi")
-        task.wait(1)
-        dialogueEvent:FireServer(unpack({ { Choice = "[ Challenge ]" } }))
-        task.wait(0.5)
-        dialogueEvent:FireServer(unpack({ { Choice = "[ Quest ]" } }))
-        task.wait(0.5)
-        dialogueEvent:FireServer(unpack({ { Exit = true } }))
-        task.wait(1.5)
+        -- POST-QUEST BERDASARKAN MODE
+        if selectedMode.ModeName == "Yen Farm" and isRunning then
+            statusSub.Text = "Status: Menyelesaikan Quest Ryuga..."
+            turnInYenFarmQuest()
+            if not isAlive() then continue end
+        elseif selectedMode.ModeName == "Lost Soul Farm" and isRunning then
+            statusSub.Text = "Status: Menyelesaikan Quest Lost Soul..."
+            turnInLostSoulQuest()
+            if not isAlive() then continue end
+        end
     end
 end
 
@@ -700,7 +923,9 @@ end
 toggleButton.MouseButton1Click:Connect(function()
     isRunning = not isRunning
     if isRunning then
-        dropdownList.Visible = false -- Tutup dropdown saat mulai
+        modeList.Visible = false
+        dungeonList.Visible = false
+        diffList.Visible = false
         toggleButton.Text = "STOP FARMING"
         TweenService:Create(toggleButton, TweenInfo.new(0.2), {BackgroundColor3 = colorOn}):Play()
         task.spawn(mainLoop)
