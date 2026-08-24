@@ -36,7 +36,7 @@ local ryugaCoords = CFrame.new(3474, -2, -1704) -- Yen Farm
 local lokasiDojo = CFrame.new(-1170, 2, -565)   -- Lost Soul (DojoStudent)
 local lokasiShoichi = CFrame.new(-3441, -2, -3178) -- Lost Soul (Shoichi)
 local leeTheMinerCoords = CFrame.new(-1226, -1, -1203) -- Farm Ore
-local craftingCoords = CFrame.new(-862, 26, -25) -- Koordinat Crafting dari Gambar
+local craftingCoords = CFrame.new(-862, 26, -25) -- Koordinat Crafting
 
 -- ==========================================
 -- DATABASE GAME MODES & COMBAT MODES
@@ -95,7 +95,7 @@ local selectedDiff = selectedDungeon.Difficulties[1]
 local selectedCombat = combatModes[1]
 
 -- ==========================================
--- PEMBUATAN GUI (MODERN & CLEAN)
+-- PEMBUATAN GUI (DIPERBESAR UNTUK TOMBOL TAMBAHAN)
 -- ==========================================
 if targetGuiParent:FindFirstChild("AutoDungeonGUI") then
     targetGuiParent.AutoDungeonGUI:Destroy()
@@ -111,7 +111,7 @@ mainFrame.Name = "MainFrame"
 mainFrame.Parent = screenGui
 mainFrame.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
 mainFrame.Position = UDim2.new(0.05, 0, 0.1, 0)
-mainFrame.Size = UDim2.new(0, 240, 0, 285)
+mainFrame.Size = UDim2.new(0, 240, 0, 355) -- Ukuran dipertinggi agar muat tombol baru
 mainFrame.BorderSizePixel = 0
 mainFrame.ClipsDescendants = false
 
@@ -428,30 +428,65 @@ diffBtn.MouseButton1Click:Connect(function() diffList.Visible = not diffList.Vis
 combatBtn.MouseButton1Click:Connect(function() combatList.Visible = not combatList.Visible modeList.Visible = false dungeonList.Visible = false diffList.Visible = false end)
 
 -- ==========================================
--- TOMBOL UTAMA (START/STOP) & DRAG
+-- TOMBOL UTAMA, TOMBOL EKSTRA & STATUS
 -- ==========================================
 local colorOff = Color3.fromRGB(239, 68, 68)
 local colorOn = Color3.fromRGB(16, 185, 129)
 
+-- Tombol Start/Stop Farming
 local toggleButton = Instance.new("TextButton")
 toggleButton.Parent = mainFrame
 toggleButton.BackgroundColor3 = colorOff
 toggleButton.Position = UDim2.new(0.5, -95, 0, 172)
-toggleButton.Size = UDim2.new(0, 190, 0, 36)
+toggleButton.Size = UDim2.new(0, 190, 0, 32)
 toggleButton.Font = Enum.Font.GothamBold
 toggleButton.Text = "START FARMING"
 toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-toggleButton.TextSize = 13
+toggleButton.TextSize = 12
 toggleButton.AutoButtonColor = false
 toggleButton.ZIndex = 2
 local cornerToggle = Instance.new("UICorner")
 cornerToggle.CornerRadius = UDim.new(0, 6)
 cornerToggle.Parent = toggleButton
 
+-- Tombol Manual: EXCHANGE ORE
+local exchangeButton = Instance.new("TextButton")
+exchangeButton.Parent = mainFrame
+exchangeButton.BackgroundColor3 = Color3.fromRGB(59, 130, 246)
+exchangeButton.Position = UDim2.new(0.5, -95, 0, 208)
+exchangeButton.Size = UDim2.new(0, 190, 0, 28)
+exchangeButton.Font = Enum.Font.GothamBold
+exchangeButton.Text = "EXCHANGE ORE"
+exchangeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+exchangeButton.TextSize = 11
+exchangeButton.AutoButtonColor = false
+exchangeButton.ZIndex = 2
+local cornerEx = Instance.new("UICorner")
+cornerEx.CornerRadius = UDim.new(0, 6)
+cornerEx.Parent = exchangeButton
+createButtonAnim(exchangeButton, Color3.fromRGB(59, 130, 246), Color3.fromRGB(96, 165, 250))
+
+-- Tombol Manual: CRAFT BLUE SAPPHIRE
+local craftButton = Instance.new("TextButton")
+craftButton.Parent = mainFrame
+craftButton.BackgroundColor3 = Color3.fromRGB(168, 85, 247)
+craftButton.Position = UDim2.new(0.5, -95, 0, 240)
+craftButton.Size = UDim2.new(0, 190, 0, 28)
+craftButton.Font = Enum.Font.GothamBold
+craftButton.Text = "CRAFT BLUE SAPPHIRE"
+craftButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+craftButton.TextSize = 11
+craftButton.AutoButtonColor = false
+craftButton.ZIndex = 2
+local cornerCr = Instance.new("UICorner")
+cornerCr.CornerRadius = UDim.new(0, 6)
+cornerCr.Parent = craftButton
+createButtonAnim(craftButton, Color3.fromRGB(168, 85, 247), Color3.fromRGB(192, 132, 252))
+
 local statusSub = Instance.new("TextLabel")
 statusSub.Parent = mainFrame
 statusSub.BackgroundTransparency = 1
-statusSub.Position = UDim2.new(0, 0, 0, 230)
+statusSub.Position = UDim2.new(0, 0, 0, 305)
 statusSub.Size = UDim2.new(1, 0, 0, 20)
 statusSub.Font = Enum.Font.Gotham
 statusSub.Text = "Status: IDLE"
@@ -602,19 +637,19 @@ local function takeYenFarmQuest()
     
     if not isRunning or not isAlive() then return end
     triggerNPC("Ryuga")
-    task.wait(1)
+    task.wait(0.5)
     dialogueEvent:FireServer(unpack({ { Choice = "[ Repeatable Quest ]" } }))
-    task.wait(1)
+    task.wait(0.5)
     dialogueEvent:FireServer(unpack({ { Exit = true } }))
-    task.wait(1)
+    task.wait(0.5)
     
     if not isRunning or not isAlive() then return end
     triggerNPC("Ryuga")
-    task.wait(1)
+    task.wait(0.5)
     dialogueEvent:FireServer(unpack({ { Choice = "[ Challenge Build ]" } }))
-    task.wait(1)
+    task.wait(0.5)
     dialogueEvent:FireServer(unpack({ { Exit = true } }))
-    task.wait(1)
+    task.wait(0.5)
 end
 
 -- PRE-QUEST: Ambil Quest Lost Soul
@@ -683,19 +718,19 @@ local function turnInYenFarmQuest()
     
     if not isRunning or not isAlive() then return end
     triggerNPC("Ryuga")
-    task.wait(1)
+    task.wait(0.5)
     dialogueEvent:FireServer(unpack({ { Choice = "[ Repeatable Quest ]" } }))
-    task.wait(1)
+    task.wait(0.5)
     dialogueEvent:FireServer(unpack({ { Exit = true } }))
-    task.wait(1)
+    task.wait(0.5)
     
     if not isRunning or not isAlive() then return end
     triggerNPC("Ryuga")
-    task.wait(1)
+    task.wait(0.5)
     dialogueEvent:FireServer(unpack({ { Choice = "[ Challenge Build ]" } }))
-    task.wait(1)
+    task.wait(0.5)
     dialogueEvent:FireServer(unpack({ { Exit = true } }))
-    task.wait(1)
+    task.wait(0.5)
 end
 
 -- POST-QUEST: Selesaikan Lost Soul
@@ -766,7 +801,7 @@ local function turnInOreQuest()
     task.wait(1)
 end
 
--- EXCHANGE: Tukar Item Quest Farm Ore (Setelah 6x Quest)
+-- EXCHANGE: Tukar Item Quest Farm Ore
 local function exchangeOre()
     local char = player.Character or player.CharacterAdded:Wait()
     local hrp = char:WaitForChild("HumanoidRootPart")
@@ -776,7 +811,6 @@ local function exchangeOre()
         task.wait(1.5)
     end
     
-    if not isRunning or not isAlive() then return end
     triggerNPC("LeeTheMiner")
     task.wait(1)
     dialogueEvent:FireServer(unpack({ { Choice = "[ Exchange ]" } }))
@@ -795,21 +829,36 @@ local function craftBlueSapphire()
     if hrp then hrp.CFrame = craftingCoords end
     task.wait(1.5)
     
-    if not isRunning or not isAlive() then return end
     triggerNPC("UniversalCrafting")
     task.wait(1)
     
     dialogueEvent:FireServer(unpack({ { Choice = "[ Craft ]" } }))
     task.wait(0.5)
     
-    -- Teleportasi Remote / Spam Craft 24x tanpa jeda
     for i = 1, 24 do
-        if not isRunning then break end
         craftingRemote:FireServer(unpack({ "Special", "Blue Sappyre" }))
     end
     task.wait(1)
 end
 
+-- ==========================================
+-- FUNGSI TOMBOL MANUAL (TERPISAH)
+-- ==========================================
+exchangeButton.MouseButton1Click:Connect(function()
+    task.spawn(function()
+        exchangeButton.Text = "EXCHANGING..."
+        exchangeOre()
+        exchangeButton.Text = "EXCHANGE ORE"
+    end)
+end)
+
+craftButton.MouseButton1Click:Connect(function()
+    task.spawn(function()
+        craftButton.Text = "CRAFTING..."
+        craftBlueSapphire()
+        craftButton.Text = "CRAFT BLUE SAPPHIRE"
+    end)
+end)
 
 -- ==========================================
 -- FUNGSI COMBAT & MAGNET (UNTUK DUNGEON LAIN)
@@ -893,11 +942,10 @@ end
 -- ==========================================
 local function mainLoop()
     local needsHenshin = true
-    local oreQuestCount = 0   -- Counter quest selesai (ke 6)
-    local exchangeSessionCount = 0 -- Counter sesi exchange (ke 3)
+    local oreQuestCount = 0   
+    local exchangeSessionCount = 0 
 
     while isRunning do
-        -- Cek Kematian / Respawn
         if not isAlive() then
             statusSub.Text = "Status: Menunggu Respawn..."
             player.CharacterAdded:Wait()
@@ -906,7 +954,6 @@ local function mainLoop()
             if not isRunning then break end
         end
 
-        -- 1. AUTO HENSHIN 
         if needsHenshin then
             local successHenshin = doAutoHenshin()
             if not successHenshin then continue end
@@ -915,7 +962,7 @@ local function mainLoop()
         end
         
         -- ==========================================
-        -- LOGIKA KHUSUS MODE: "FARM ORE"
+        -- LOGIKA KHUSUS MODE: "FARM ORE" OTOMATIS
         -- ==========================================
         if selectedMode.ModeName == "Farm Ore" then
             statusSub.Text = "Status: Mengambil Quest Ore..."
@@ -923,14 +970,12 @@ local function mainLoop()
             if not isAlive() then continue end
             if not isRunning then break end
             
-            -- Equip Tool Attack
             local currentCharacter = player.Character or player.CharacterAdded:Wait()
             local attackTool = player.Backpack:FindFirstChild("Attack")
             if attackTool then
                 currentCharacter:WaitForChild("Humanoid"):EquipTool(attackTool)
             end
             
-            -- Menghitung MiningGoon (Pola bergantian: 1, lalu 2, lalu 1, lalu 2... sampai 12)
             local killedCount = 0
             local addTwoNext = false
             while killedCount < 12 and isRunning and isAlive() do
@@ -992,7 +1037,6 @@ local function mainLoop()
             if not isAlive() then continue end
             if not isRunning then break end
             
-            -- Simpan kembali tool attack ke backpack
             local activeChar = player.Character
             if activeChar then
                 local equippedTool = activeChar:FindFirstChild("Attack")
@@ -1004,25 +1048,20 @@ local function mainLoop()
             if not isAlive() then continue end
             if not isRunning then break end
             
-            -- Menghitung quest selesai (sampai 6 kali)
             oreQuestCount = oreQuestCount + 1
             if oreQuestCount >= 6 then
                 statusSub.Text = "Status: Exchange Ore..."
                 exchangeOre()
                 oreQuestCount = 0
                 
-                -- Tambahkan hitungan sesi exchange
                 exchangeSessionCount = exchangeSessionCount + 1
-                
-                -- Jika sudah 3x Sesi Exchange -> Lakukan Crafting
                 if exchangeSessionCount >= 3 then
                     statusSub.Text = "Status: Crafting Blue Saphire..."
                     craftBlueSapphire()
-                    exchangeSessionCount = 0 -- Reset counter
+                    exchangeSessionCount = 0 
                 end
             end
             
-            -- Tanpa jeda, langsung looping balik ke quest
             continue
         end
 
@@ -1041,7 +1080,6 @@ local function mainLoop()
             if not isRunning then break end
         end
 
-        -- BUAT LOBBY & START DUNGEON
         statusSub.Text = "Status: Membuat " .. selectedDungeon.Name .. " (" .. selectedDiff.Name .. ")"
         if not isAlive() then continue end
         if not isRunning then break end
@@ -1080,7 +1118,6 @@ local function mainLoop()
             currentCharacter:WaitForChild("Humanoid"):EquipTool(attackTool)
         end
 
-        -- LOGIKA MONSTER BERCABANG BERDASARKAN MAP
         local mapStr = selectedDungeon.Map
         local farmSuccess = true
         
@@ -1135,7 +1172,6 @@ local function mainLoop()
             continue
         end
         
-        -- SIMPAN TOOL ATTACK
         statusSub.Text = "Status: Dungeon Selesai!"
         local activeChar = player.Character
         if activeChar then
@@ -1143,7 +1179,6 @@ local function mainLoop()
             if equippedTool then equippedTool.Parent = player.Backpack end
         end
         
-        -- JEDA ISTIRAHAT 10 DETIK SEBELUM SELESAIKAN QUEST
         for i = 1, 10 do
             if not isRunning or not isAlive() then break end
             statusSub.Text = "Status: Istirahat " .. (11 - i) .. "s"
@@ -1151,7 +1186,6 @@ local function mainLoop()
         end
         if not isAlive() then continue end
 
-        -- SELESAIKAN QUEST (JIKA MODE QUEST)
         if selectedMode.ModeName == "Yen Farm" and isRunning then
             statusSub.Text = "Status: Menyelesaikan Quest Ryuga..."
             turnInYenFarmQuest()
