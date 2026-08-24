@@ -46,6 +46,7 @@ local gameModes = {
         ModeName = "Trial",
         Dungeons = {
             { Name = "Trial of Ancient", Type = "trial", Map = "AncientWorld", Difficulties = { {Name = "Easy", Int = 1}, {Name = "Normal", Int = 2}, {Name = "Hard", Int = 3}, {Name = "Extreme", Int = 4} } },
+            { Name = "Trial of Fourze", Type = "trial", Map = "FourzeTrial", Difficulties = { {Name = "Easy", Int = 1}, {Name = "Normal", Int = 2}, {Name = "Hard", Int = 3}, {Name = "Extreme", Int = 4} } },
             { Name = "Trial of Diend", Type = "trial", Map = "Irreplaceable", Difficulties = { {Name = "Easy", Int = 1}, {Name = "Normal", Int = 2}, {Name = "Hard", Int = 3}, {Name = "Extreme", Int = 4} } },
             { Name = "Trial of Kiva", Type = "trial", Map = "KivaTrial", Difficulties = { {Name = "Easy", Int = 1}, {Name = "Normal", Int = 2}, {Name = "Hard", Int = 3}, {Name = "Extreme", Int = 4} } },
             { Name = "Trial of Faiz", Type = "trial", Map = "SmartWorld", Difficulties = { {Name = "Easy", Int = 1}, {Name = "Normal", Int = 2}, {Name = "Hard", Int = 3}, {Name = "Extreme", Int = 4} } },
@@ -95,7 +96,7 @@ local selectedDiff = selectedDungeon.Difficulties[1]
 local selectedCombat = combatModes[1]
 
 -- ==========================================
--- PEMBUATAN GUI (DIPERBESAR UNTUK TOMBOL TAMBAHAN)
+-- PEMBUATAN GUI (INTERACE)
 -- ==========================================
 if targetGuiParent:FindFirstChild("AutoDungeonGUI") then
     targetGuiParent.AutoDungeonGUI:Destroy()
@@ -111,7 +112,7 @@ mainFrame.Name = "MainFrame"
 mainFrame.Parent = screenGui
 mainFrame.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
 mainFrame.Position = UDim2.new(0.05, 0, 0.1, 0)
-mainFrame.Size = UDim2.new(0, 240, 0, 355) -- Ukuran dipertinggi agar muat tombol baru
+mainFrame.Size = UDim2.new(0, 240, 0, 355)
 mainFrame.BorderSizePixel = 0
 mainFrame.ClipsDescendants = false
 
@@ -433,7 +434,6 @@ combatBtn.MouseButton1Click:Connect(function() combatList.Visible = not combatLi
 local colorOff = Color3.fromRGB(239, 68, 68)
 local colorOn = Color3.fromRGB(16, 185, 129)
 
--- Tombol Start/Stop Farming
 local toggleButton = Instance.new("TextButton")
 toggleButton.Parent = mainFrame
 toggleButton.BackgroundColor3 = colorOff
@@ -449,7 +449,6 @@ local cornerToggle = Instance.new("UICorner")
 cornerToggle.CornerRadius = UDim.new(0, 6)
 cornerToggle.Parent = toggleButton
 
--- Tombol Manual: EXCHANGE ORE
 local exchangeButton = Instance.new("TextButton")
 exchangeButton.Parent = mainFrame
 exchangeButton.BackgroundColor3 = Color3.fromRGB(59, 130, 246)
@@ -466,7 +465,6 @@ cornerEx.CornerRadius = UDim.new(0, 6)
 cornerEx.Parent = exchangeButton
 createButtonAnim(exchangeButton, Color3.fromRGB(59, 130, 246), Color3.fromRGB(96, 165, 250))
 
--- Tombol Manual: CRAFT BLUE SAPPHIRE
 local craftButton = Instance.new("TextButton")
 craftButton.Parent = mainFrame
 craftButton.BackgroundColor3 = Color3.fromRGB(168, 85, 247)
@@ -860,8 +858,11 @@ craftButton.MouseButton1Click:Connect(function()
     end)
 end)
 
+-- Variabel global untuk timer cooldown Legit Mode
+local lastLegitUltimateTime = 0
+
 -- ==========================================
--- FUNGSI COMBAT & MAGNET (UNTUK DUNGEON LAIN)
+-- FUNGSI COMBAT & MAGNET (DENGAN COOLDOWN TIMER 22 DETIK)
 -- ==========================================
 local function farmSpecificMob(getMobFunction, mobName, timeout)
     statusSub.Text = "Status: Scan " .. mobName .. "..."
@@ -882,7 +883,7 @@ local function farmSpecificMob(getMobFunction, mobName, timeout)
             timeWaited = timeWaited + 0.2
             if timeWaited >= timeout then
                 statusSub.Text = mobName .. " di-Skip!"
-                return true
+                return false
             end
         end
     end
@@ -919,12 +920,65 @@ local function farmSpecificMob(getMobFunction, mobName, timeout)
     local characterRef = player.Character or player.CharacterAdded:Wait()
     local playerHandler = characterRef:WaitForChild("PlayerHandler"):WaitForChild("HandlerEvent")
 
+    local perksInitialized = false
+
     while isTargetActive and isRunning and isAlive() and task.wait() do
         local currentMob = getMobFunction()
         if currentMob and currentMob:FindFirstChild("RootPart") then
             local aimCFrame = currentMob.RootPart.CFrame 
-            playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
-            task.wait(0.12)
+            
+            if selectedCombat.Name == "Legit" then
+                -- Cek apakah sudah 22 detik berlalu sejak Perks + Ultimate terakhir dieksekusi
+                if os.clock() - lastLegitUltimateTime >= 22 then
+                    -- Eksekusi Perks Skill (Key = "G")
+                    playerHandler:FireServer(unpack({ { IsJump = false, Skill = true, Key = "G", MouseData = aimCFrame } }))
+                    task.wait(0.2)
+                    
+                    -- Eksekusi Ultimate (Key = "V")
+                    playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "V", MouseData = aimCFrame } }))
+                    task.wait(0.2)
+                    
+                    -- Update Waktu Terakhir menjadi sekarang
+                    lastLegitUltimateTime = os.clock()
+                else
+                    -- Sembari nunggu 22 detik berlalu, eksekusi Basic, Heavy, dan Skill 1 tanpa henti
+                    playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "E", MouseData = aimCFrame } }))
+                    task.wait(0.08)
+                    
+                    playerHandler:FireServer(unpack({ { CombatAction = true, LightAttack = true, MouseData = aimCFrame } }))
+                    task.wait(0.08)
+                    
+                    playerHandler:FireServer(unpack({ { CombatAction = true, HeavyAttack = true, AttackType = "Down", MouseData = aimCFrame } }))
+                    task.wait(0.08)
+                end
+
+            elseif selectedCombat.Name == "Perks" then
+                if not perksInitialized then
+                    -- UTAMAKAN PERKS & ULTIMATE TERLEBIH DAHULU (Di awal saja untuk mode Perks)
+                    playerHandler:FireServer(unpack({ { IsJump = false, Skill = true, Key = "G", MouseData = aimCFrame } }))
+                    task.wait(0.2)
+                    playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "V", MouseData = aimCFrame } }))
+                    task.wait(0.4)
+                    perksInitialized = true
+                else
+                    -- SELANJUTNYA SPAM
+                    playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "E", MouseData = aimCFrame } }))
+                    task.wait(0.06)
+                    playerHandler:FireServer(unpack({ { CombatAction = true, LightAttack = true, MouseData = aimCFrame } }))
+                    task.wait(0.06)
+                    playerHandler:FireServer(unpack({ { CombatAction = true, HeavyAttack = true, AttackType = "Down", MouseData = aimCFrame } }))
+                    task.wait(0.06)
+                end
+
+            elseif selectedCombat.Name == "Heavy Attack" then
+                playerHandler:FireServer(unpack({ { CombatAction = true, HeavyAttack = true, AttackType = "Down", MouseData = aimCFrame } }))
+                task.wait(0.12)
+
+            else
+                -- Casual / Random (Spam Basic Attack)
+                playerHandler:FireServer(unpack({ { CombatAction = true, LightAttack = true, MouseData = aimCFrame } }))
+                task.wait(0.12)
+            end
         else
             isTargetActive = false
         end
@@ -1013,7 +1067,7 @@ local function mainLoop()
                     while targetMob and targetMob.Parent and targetRoot and targetRoot.Parent and isRunning and isAlive() do
                         if playerHandler then
                             local aimCFrame = targetRoot.CFrame
-                            playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
+                            playerHandler:FireServer(unpack({ { CombatAction = true, LightAttack = true, MouseData = aimCFrame } }))
                         end
                         task.wait(0.12)
                     end
@@ -1126,6 +1180,60 @@ local function mainLoop()
             if farmSuccess then task.wait(1.5) farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("FlyingXugo") end return nil end, "FlyingXugo", 3) end
             if farmSuccess then farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Agito") end return nil end, "Agito") end
             if farmSuccess then farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Daguba") end return nil end, "Daguba") end
+
+        elseif mapStr == "FourzeTrial" then
+            -- 1. Scan & Loop Shocker
+            for i = 1, 8 do
+                if not isRunning or not isAlive() then farmSuccess = false break end
+                
+                local scanResult = farmSpecificMob(function()
+                    if workspace:FindFirstChild("Mobs") then
+                        for _, mob in ipairs(workspace.Mobs:GetChildren()) do
+                            if mob.Name == "Shocker" and mob:FindFirstChild("RootPart") then
+                                local hum = mob:FindFirstChild("Humanoid")
+                                if not hum or hum.Health > 0 then
+                                    return mob
+                                end
+                            end
+                        end
+                    end
+                    return nil
+                end, "Shocker (" .. i .. "/8)", 2)
+                
+                if not scanResult then
+                    statusSub.Text = "Status: Shocker habis/lewat, lanjut RyoGills..."
+                    break
+                end
+                
+                if not isRunning or not isAlive() then break end
+                task.wait(0.3)
+            end
+            
+            -- 2. Target ke-2: RyoGills
+            if isRunning and isAlive() then
+                farmSuccess = farmSpecificMob(function()
+                    if workspace:FindFirstChild("Mobs") then
+                        local ryo = workspace.Mobs:FindFirstChild("RyoGills")
+                        if ryo and ryo:FindFirstChild("RootPart") then
+                            return ryo
+                        end
+                    end
+                    return nil
+                end, "RyoGills", 5)
+            end
+
+            -- 3. Target ke-3: ZodiartBoss
+            if farmSuccess and isRunning and isAlive() then
+                farmSuccess = farmSpecificMob(function()
+                    if workspace:FindFirstChild("Mobs") then
+                        local zodiart = workspace.Mobs:FindFirstChild("ZodiartBoss")
+                        if zodiart and zodiart:FindFirstChild("RootPart") then
+                            return zodiart
+                        end
+                    end
+                    return nil
+                end, "ZodiartBoss", 5)
+            end
 
         elseif mapStr == "Irreplaceable" then
             farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Momotaros") end return nil end, "Momotaros")
