@@ -754,8 +754,10 @@ local function farmSpecificMob(getMobFunction, mobName, timeout)
     local characterRef = player.Character or player.CharacterAdded:Wait()
     local playerHandler = characterRef:WaitForChild("PlayerHandler"):WaitForChild("HandlerEvent")
 
-    -- KONDISI 1, 2, & 3: COMBAT MODE "CASUAL", "PERKS", & "LEGIT"
-    if selectedCombat.Name == "Casual" or selectedCombat.Name == "Perks" or selectedCombat.Name == "Legit" then
+    -- ==========================================
+    -- LOGIKA COMBAT MODE: "CASUAL" & "PERKS"
+    -- ==========================================
+    if selectedCombat.Name == "Casual" or selectedCombat.Name == "Perks" then
         local lastUltTime = 0
         local lastSkill1Time = 0 
         local lastSkill2Time = 0 
@@ -765,52 +767,72 @@ local function farmSpecificMob(getMobFunction, mobName, timeout)
             if currentMob and currentMob:FindFirstChild("RootPart") then
                 local aimCFrame = currentMob.RootPart.CFrame 
 
-                -- 1. LOGIKA ULTIMATE DAN PERKS
                 if tick() - lastUltTime >= 25 then
-                    if selectedCombat.Name == "Perks" or selectedCombat.Name == "Legit" then
-                        -- Gunakan skill Perks ("G") terlebih dahulu agar animasi jalan
+                    if selectedCombat.Name == "Perks" then
                         playerHandler:FireServer(unpack({ { IsJump = false, Skill = true, Key = "G", MouseData = aimCFrame } }))
                         task.wait(1.5)
                     end
                     
                     if not isTargetActive or not isRunning or not isAlive() then break end
-                    
-                    -- Cast Ultimate ("V")
                     playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "V", MouseData = aimCFrame } }))
-                    task.wait(2) -- Jeda wajib setelah Ultimate sesuai request
+                    task.wait(2)
                     lastUltTime = tick()
                 end
 
                 if not isTargetActive or not isRunning or not isAlive() then break end
 
-                -- 2. LOGIKA ROTASI ATTACK / SPAM
-                if selectedCombat.Name == "Legit" then
-                    -- Mode Legit: SPAM BRUTAL tanpa task.wait buatan!
-                    -- Hanya memanggil Heavy Attack dan Skill 1 ("E"). TIDAK ADA Basic Attack & Skill 2 ("R")
-                    playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
+                if tick() - lastSkill1Time >= 10 then
                     playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "E", MouseData = aimCFrame } }))
-                    
+                    task.wait(1.5)
+                    lastSkill1Time = tick()
+                elseif tick() - lastSkill2Time >= 15 then
+                    playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "R", MouseData = aimCFrame } }))
+                    task.wait(1.5)
+                    lastSkill2Time = tick()
                 else
-                    -- Mode Casual & Perks: Rotasi terstruktur dengan jeda aman 1.5 detik
-                    if tick() - lastSkill1Time >= 10 then
-                        playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "E", MouseData = aimCFrame } }))
-                        task.wait(1.5)
-                        lastSkill1Time = tick()
-                    elseif tick() - lastSkill2Time >= 15 then
-                        playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "R", MouseData = aimCFrame } }))
-                        task.wait(1.5)
-                        lastSkill2Time = tick()
-                    else
-                        playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
-                        task.wait(1.5)
-                    end
+                    playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
+                    task.wait(1.5)
                 end
             else
                 isTargetActive = false
             end
         end
 
-    -- KONDISI 4: COMBAT MODE "RANDOM" (Spam Bebas & Acak)
+    -- ==========================================
+    -- LOGIKA COMBAT MODE: "LEGIT" (Tanpa Timer Buatan, Cooldown Game Diabaikan Server)
+    -- ==========================================
+    elseif selectedCombat.Name == "Legit" then
+        while isTargetActive and isRunning and isAlive() and task.wait() do
+            local currentMob = getMobFunction()
+            if currentMob and currentMob:FindFirstChild("RootPart") then
+                local aimCFrame = currentMob.RootPart.CFrame 
+                
+                -- 1. Spam Heavy Attack
+                playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
+                task.wait(0.12)
+                if not isTargetActive or not isRunning or not isAlive() then break end
+
+                -- 2. Spam Skill 1 ("E")
+                playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "E", MouseData = aimCFrame } }))
+                task.wait(0.12)
+                if not isTargetActive or not isRunning or not isAlive() then break end
+
+                -- 3. Spam Perks ("G")
+                playerHandler:FireServer(unpack({ { IsJump = false, Skill = true, Key = "G", MouseData = aimCFrame } }))
+                task.wait(0.12)
+                if not isTargetActive or not isRunning or not isAlive() then break end
+
+                -- 4. Spam Ultimate ("V")
+                playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "V", MouseData = aimCFrame } }))
+                task.wait(0.12)
+            else
+                isTargetActive = false
+            end
+        end
+
+    -- ==========================================
+    -- LOGIKA COMBAT MODE: "RANDOM"
+    -- ==========================================
     elseif selectedCombat.Name == "Random" then
         while isTargetActive and isRunning and isAlive() and task.wait(0.3) do
             local currentMob = getMobFunction()
