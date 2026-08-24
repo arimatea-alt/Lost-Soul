@@ -575,7 +575,7 @@ local function takeYenFarmQuest()
     
     if (hrp.Position - ryugaCoords.Position).Magnitude > 20 then
         hrp.CFrame = ryugaCoords
-        task.wait(1.5)
+        task.wait(1)
     end
     
     if not isRunning or not isAlive() then return end
@@ -634,7 +634,7 @@ local function turnInYenFarmQuest()
     local hrp = char:WaitForChild("HumanoidRootPart")
     
     if hrp then hrp.CFrame = ryugaCoords end
-    task.wait(1.5)
+    task.wait(1)
     
     if not isRunning or not isAlive() then return end
     triggerNPC("Ryuga")
@@ -799,32 +799,51 @@ local function farmSpecificMob(getMobFunction, mobName, timeout)
         end
 
     -- ==========================================
-    -- LOGIKA COMBAT MODE: "LEGIT" (Tanpa Timer Buatan, Cooldown Game Diabaikan Server)
+    -- LOGIKA COMBAT MODE: "LEGIT"
+    -- (Perks & Ultimate punya jeda cooldown seperti mode Perks, 
+    -- dan sambil menunggu, melakukan spam berurutan tanpa jeda: Basic -> Heavy -> Skill 1)
     -- ==========================================
     elseif selectedCombat.Name == "Legit" then
+        local lastUltTime = 0
+
         while isTargetActive and isRunning and isAlive() and task.wait() do
             local currentMob = getMobFunction()
             if currentMob and currentMob:FindFirstChild("RootPart") then
                 local aimCFrame = currentMob.RootPart.CFrame 
+
+                -- 1. CEK COOLDOWN PERKS & ULTIMATE (Sama seperti mode Perks: setiap 25 detik)
+                if tick() - lastUltTime >= 25 then
+                    -- Picu Perks ("G") dulu dan tunggu 1.5 detik agar animasi tidak gagal
+                    playerHandler:FireServer(unpack({ { IsJump = false, Skill = true, Key = "G", MouseData = aimCFrame } }))
+                    task.wait(1.5)
+                    
+                    if not isTargetActive or not isRunning or not isAlive() then break end
+                    
+                    -- Picu Ultimate ("V")
+                    playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "V", MouseData = aimCFrame } }))
+                    task.wait(2)
+                    lastUltTime = tick()
+                end
+
+                if not isTargetActive or not isRunning or not isAlive() then break end
+
+                -- 2. SEMBARI MENUNGGU JEDA PERKS & ULTIMATE, SPAM BERURUTAN TANPA JEDA PANJANG:
+                -- Basic Attack -> Heavy Attack -> Skill 1 ("E")
                 
-                -- 1. Spam Heavy Attack
+                -- Basic Attack
+                playerHandler:FireServer(unpack({ { CombatAction = true, LightAttack = true, MouseData = aimCFrame } }))
+                task.wait(0.1)
+                if not isTargetActive or not isRunning or not isAlive() then break end
+
+                -- Heavy Attack
                 playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
-                task.wait(0.12)
+                task.wait(0.1)
                 if not isTargetActive or not isRunning or not isAlive() then break end
 
-                -- 2. Spam Skill 1 ("E")
+                -- Skill 1 ("E")
                 playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "E", MouseData = aimCFrame } }))
-                task.wait(0.12)
-                if not isTargetActive or not isRunning or not isAlive() then break end
+                task.wait(0.1)
 
-                -- 3. Spam Perks ("G")
-                playerHandler:FireServer(unpack({ { IsJump = false, Skill = true, Key = "G", MouseData = aimCFrame } }))
-                task.wait(0.12)
-                if not isTargetActive or not isRunning or not isAlive() then break end
-
-                -- 4. Spam Ultimate ("V")
-                playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "V", MouseData = aimCFrame } }))
-                task.wait(0.12)
             else
                 isTargetActive = false
             end
