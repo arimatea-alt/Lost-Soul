@@ -62,6 +62,7 @@ local gameModes = {
 
 local combatModes = {
     { Name = "Casual" },
+    { Name = "Perks" },
     { Name = "Random" }
 }
 
@@ -697,7 +698,7 @@ local function turnInLostSoulQuest()
 end
 
 -- ==========================================
--- FUNGSI COMBAT & MAGNET (CASUAL vs RANDOM)
+-- FUNGSI COMBAT & MAGNET (CASUAL, PERKS, RANDOM)
 -- ==========================================
 local function farmSpecificMob(getMobFunction, mobName, timeout)
     statusSub.Text = "Status: Scan " .. mobName .. "..."
@@ -752,21 +753,9 @@ local function farmSpecificMob(getMobFunction, mobName, timeout)
     local characterRef = player.Character or player.CharacterAdded:Wait()
     local playerHandler = characterRef:WaitForChild("PlayerHandler"):WaitForChild("HandlerEvent")
 
-    -- KONDISI 1: COMBAT MODE "CASUAL"
-    if selectedCombat.Name == "Casual" then
-        task.spawn(function()
-            while isTargetActive and isRunning and isAlive() do
-                local charRef = player.Character
-                if charRef and charRef:FindFirstChild("PlayerHandler") then
-                    local pH = charRef.PlayerHandler:FindFirstChild("HandlerEvent")
-                    if pH then
-                        pH:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "V", MouseData = CFrame.new(67.2, 1008.8, 5086.6, 1, 0, 0, 0, 1, 0, 0, 0, 1) } }))
-                    end
-                end
-                task.wait(0.2)
-            end
-        end)
-
+    -- KONDISI 1 & 2: COMBAT MODE "CASUAL" & "PERKS"
+    if selectedCombat.Name == "Casual" or selectedCombat.Name == "Perks" then
+        local lastUltTime = 0
         local lastSkill1Time = 0 
         local lastSkill2Time = 0 
 
@@ -775,46 +764,44 @@ local function farmSpecificMob(getMobFunction, mobName, timeout)
             if currentMob and currentMob:FindFirstChild("RootPart") then
                 local aimCFrame = currentMob.RootPart.CFrame 
 
-                playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
-                task.wait(2)
+                -- 1. CEK ULTIMATE COOLDOWN (Asumsi Cooldown rata-rata 25 detik)
+                if tick() - lastUltTime >= 25 then
+                    if selectedCombat.Name == "Perks" then
+                        -- Jika mode Perks, keluarkan skill G dulu dan tunggu agar animasi tidak gagal
+                        playerHandler:FireServer(unpack({ { IsJump = false, Skill = true, Key = "G", MouseData = aimCFrame } }))
+                        task.wait(1.5)
+                    end
+                    
+                    if not isTargetActive or not isRunning or not isAlive() then break end
+                    
+                    -- Cast Ultimate
+                    playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "V", MouseData = aimCFrame } }))
+                    task.wait(2) -- Jeda 2 detik setelah menggunakan Ultimate sesuai request
+                    lastUltTime = tick()
+                end
+
                 if not isTargetActive or not isRunning or not isAlive() then break end
 
+                -- 2. PRIORITASKAN HEAVY ATTACK SAMBIL MENGGUNAKAN SKILL 1 & 2
                 if tick() - lastSkill1Time >= 10 then
                     playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "E", MouseData = aimCFrame } }))
-                    task.wait(5)
+                    task.wait(1.5)
                     lastSkill1Time = tick()
-                else
-                    playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
-                    task.wait(2)
-                end
-                if not isTargetActive or not isRunning or not isAlive() then break end
-
-                playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
-                task.wait(2)
-                if not isTargetActive or not isRunning or not isAlive() then break end
-
-                playerHandler:FireServer(unpack({ { CombatAction = true, LightAttack = true, MouseData = aimCFrame } }))
-                task.wait(0.2)
-                if not isTargetActive or not isRunning or not isAlive() then break end
-
-                if tick() - lastSkill2Time >= 15 then
+                elseif tick() - lastSkill2Time >= 15 then
                     playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "R", MouseData = aimCFrame } }))
-                    task.wait(2.5)
+                    task.wait(1.5)
                     lastSkill2Time = tick()
                 else
+                    -- Perbanyak Heavy Attack ketika Skill sedang Cooldown
                     playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
-                    task.wait(2)
+                    task.wait(1.5)
                 end
-                if not isTargetActive or not isRunning or not isAlive() then break end
-
-                playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
-                task.wait(2)
             else
                 isTargetActive = false
             end
         end
 
-    -- KONDISI 2: COMBAT MODE "RANDOM" (Spam Bebas & Acak)
+    -- KONDISI 3: COMBAT MODE "RANDOM" (Spam Bebas & Acak)
     elseif selectedCombat.Name == "Random" then
         while isTargetActive and isRunning and isAlive() and task.wait(0.3) do
             local currentMob = getMobFunction()
@@ -850,7 +837,7 @@ end
 -- FUNGSI UTAMA YANG DI-LOOP
 -- ==========================================
 local function mainLoop()
-    local needsHenshin = true -- Status untuk mengecek apakah perlu henshin di awal / setelah mati
+    local needsHenshin = true
 
     while isRunning do
         -- Cek Kematian / Respawn
@@ -858,16 +845,16 @@ local function mainLoop()
             statusSub.Text = "Status: Menunggu Respawn..."
             player.CharacterAdded:Wait()
             task.wait(2)
-            needsHenshin = true -- Jika mati dan respawn, tandai agar henshin ulang dari awal
+            needsHenshin = true
             if not isRunning then break end
         end
 
-        -- 1. AUTO HENSHIN (Hanya berjalan jika baru mulai atau setelah respawn karena mati)
+        -- 1. AUTO HENSHIN (Hanya berjalan jika baru mulai atau setelah respawn)
         if needsHenshin then
             local successHenshin = doAutoHenshin()
             if not successHenshin then continue end
             if not isRunning then break end
-            needsHenshin = false -- Matikan flag agar setelah ini tidak henshin berulang-ulang
+            needsHenshin = false
         end
 
         -- 2. AMBIL QUEST JIKA DI MODE QUEST
@@ -882,19 +869,18 @@ local function mainLoop()
             if not isRunning then break end
         end
 
-        -- 3. BUAT LOBBY & START DUNGEON (Perbaikan argument unpacking)
+        -- 3. BUAT LOBBY & START DUNGEON
         statusSub.Text = "Status: Membuat " .. selectedDungeon.Name .. " (" .. selectedDiff.Name .. ")"
         if not isAlive() then continue end
         if not isRunning then break end
         
-        -- Membungkus argumen ke dalam table lalu di-unpack sesuai permintaan
         local lobbyArgs = {
             "create",
             "public",
             selectedDungeon.Type,
             selectedDungeon.Map,
             2,
-            selectedDiff.Int -- Int menyesuaikan Easy (1), Normal (2), Hard (3), Extreme (4)
+            selectedDiff.Int
         }
         local sessionID = lobbyAction:InvokeServer(unpack(lobbyArgs))
         task.wait(1)
@@ -1005,8 +991,6 @@ local function mainLoop()
             turnInLostSoulQuest()
             if not isAlive() then continue end
         end
-        
-        -- Loop berlanjut langsung ke awal (tanpa Auto Henshin ulang, langsung ambil quest atau buat dungeon baru!)
     end
 end
 
