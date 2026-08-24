@@ -1,5 +1,5 @@
 -- ==========================================
--- INISIALISASI & SERVICE UTAMA
+-- INISIALISASI & SERVICE UTAMA (DELTA OPTIMIZED)
 -- ==========================================
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -10,18 +10,33 @@ local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
 
+-- Perlindungan GUI Khusus Delta Executor
+local targetGuiParent
+if gethui then
+    local s, r = pcall(gethui)
+    if s and r then targetGuiParent = r end
+end
+if not targetGuiParent then
+    targetGuiParent = CoreGui
+end
+
 -- Path Remote Event & Function
-local remoteFolder = ReplicatedStorage:WaitForChild("Remote")
+local remoteFolder = ReplicatedStorage:WaitForChild("Remote", 10)
+if not remoteFolder then warn("Gagal memuat Remote, game belum ter-load penuh!") return end
+
 local lobbyAction = remoteFolder:WaitForChild("Dungeon"):WaitForChild("LobbyAction")
 local dungeonSession = remoteFolder:WaitForChild("Dungeon"):WaitForChild("Session")
 local dialogueEvent = remoteFolder:WaitForChild("Event"):WaitForChild("Dialogue")
 local dungeonQuery = remoteFolder:WaitForChild("Dungeon"):WaitForChild("QueryData")
 local foundationEvent = remoteFolder:WaitForChild("Event"):WaitForChild("FoundationEventRemote")
+local craftingRemote = remoteFolder:WaitForChild("Event"):WaitForChild("CraftingRemote")
 
--- Koordinat Target NPC
+-- Koordinat Target NPC & Crafting
 local ryugaCoords = CFrame.new(3474, -2, -1704) -- Yen Farm
 local lokasiDojo = CFrame.new(-1170, 2, -565)   -- Lost Soul (DojoStudent)
 local lokasiShoichi = CFrame.new(-3441, -2, -3178) -- Lost Soul (Shoichi)
+local leeTheMinerCoords = CFrame.new(-1226, -1, -1203) -- Farm Ore
+local craftingCoords = CFrame.new(-862, 26, -25) -- Koordinat Crafting dari Gambar
 
 -- ==========================================
 -- DATABASE GAME MODES & COMBAT MODES
@@ -57,6 +72,12 @@ local gameModes = {
         Dungeons = {
             { Name = "Farm Lost Soul (Ancient)", Type = "trial", Map = "AncientWorld", Difficulties = { {Name = "Easy", Int = 1}, {Name = "Normal", Int = 2}, {Name = "Hard", Int = 3}, {Name = "Extreme", Int = 4} } }
         }
+    },
+    {
+        ModeName = "Farm Ore",
+        Dungeons = {
+            { Name = "Farm MiningGoon", Type = "farm", Map = "None", Difficulties = { {Name = "Normal", Int = 1} } }
+        }
     }
 }
 
@@ -64,6 +85,7 @@ local combatModes = {
     { Name = "Casual" },
     { Name = "Perks" },
     { Name = "Legit" },
+    { Name = "Heavy Attack" },
     { Name = "Random" }
 }
 
@@ -75,13 +97,13 @@ local selectedCombat = combatModes[1]
 -- ==========================================
 -- PEMBUATAN GUI (MODERN & CLEAN)
 -- ==========================================
-if CoreGui:FindFirstChild("AutoDungeonGUI") then
-    CoreGui.AutoDungeonGUI:Destroy()
+if targetGuiParent:FindFirstChild("AutoDungeonGUI") then
+    targetGuiParent.AutoDungeonGUI:Destroy()
 end
 
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "AutoDungeonGUI"
-screenGui.Parent = CoreGui
+screenGui.Parent = targetGuiParent
 screenGui.ResetOnSpawn = false
 
 local mainFrame = Instance.new("Frame")
@@ -188,7 +210,7 @@ cornerMin.Parent = minButton
 createButtonAnim(minButton, colorMinN, colorMinH)
 
 -- ==========================================
--- DROPDOWN SELECTIONS (MODE, MAP, DIFF, COMBAT)
+-- DROPDOWN SELECTIONS
 -- ==========================================
 
 local modeBtn = Instance.new("TextButton")
@@ -458,7 +480,7 @@ strokeBubble.Parent = minBubble
 
 local isRunning = false
 
--- CUSTOM DRAG (BUG FIX)
+-- CUSTOM DRAG
 local dragging, dragInput, dragStart, startPos
 topBar.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -575,24 +597,24 @@ local function takeYenFarmQuest()
     
     if (hrp.Position - ryugaCoords.Position).Magnitude > 20 then
         hrp.CFrame = ryugaCoords
-        task.wait(1)
+        task.wait(1.5)
     end
     
     if not isRunning or not isAlive() then return end
     triggerNPC("Ryuga")
-    task.wait(0.5)
+    task.wait(1)
     dialogueEvent:FireServer(unpack({ { Choice = "[ Repeatable Quest ]" } }))
-    task.wait(0.5)
+    task.wait(1)
     dialogueEvent:FireServer(unpack({ { Exit = true } }))
-    task.wait(0.5)
+    task.wait(1)
     
     if not isRunning or not isAlive() then return end
     triggerNPC("Ryuga")
-    task.wait(0.5)
+    task.wait(1)
     dialogueEvent:FireServer(unpack({ { Choice = "[ Challenge Build ]" } }))
-    task.wait(0.5)
+    task.wait(1)
     dialogueEvent:FireServer(unpack({ { Exit = true } }))
-    task.wait(0.5)
+    task.wait(1)
 end
 
 -- PRE-QUEST: Ambil Quest Lost Soul
@@ -628,29 +650,52 @@ local function takeLostSoulQuest()
     task.wait(0.5)
 end
 
+-- PRE-QUEST: Ambil Quest Farm Ore
+local function takeOreQuest()
+    local char = player.Character or player.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart")
+    
+    if (hrp.Position - leeTheMinerCoords.Position).Magnitude > 20 then
+        hrp.CFrame = leeTheMinerCoords
+        task.wait(1.5)
+    end
+    
+    if not isRunning or not isAlive() then return end
+    triggerNPC("LeeTheMiner")
+    task.wait(1)
+    dialogueEvent:FireServer(unpack({ { Choice = "[ Quest ]" } }))
+    task.wait(0.5)
+    dialogueEvent:FireServer(unpack({ { Choice = "[ Repeatable ]" } }))
+    task.wait(0.5)
+    dialogueEvent:FireServer(unpack({ { Choice = "Yes, I've done it." } }))
+    task.wait(0.5)
+    dialogueEvent:FireServer(unpack({ { Exit = true } }))
+    task.wait(1)
+end
+
 -- POST-QUEST: Selesaikan Yen Farm
 local function turnInYenFarmQuest()
     local char = player.Character or player.CharacterAdded:Wait()
     local hrp = char:WaitForChild("HumanoidRootPart")
     
     if hrp then hrp.CFrame = ryugaCoords end
+    task.wait(1.5)
+    
+    if not isRunning or not isAlive() then return end
+    triggerNPC("Ryuga")
+    task.wait(1)
+    dialogueEvent:FireServer(unpack({ { Choice = "[ Repeatable Quest ]" } }))
+    task.wait(1)
+    dialogueEvent:FireServer(unpack({ { Exit = true } }))
     task.wait(1)
     
     if not isRunning or not isAlive() then return end
     triggerNPC("Ryuga")
-    task.wait(0.5)
-    dialogueEvent:FireServer(unpack({ { Choice = "[ Repeatable Quest ]" } }))
-    task.wait(0.5)
-    dialogueEvent:FireServer(unpack({ { Exit = true } }))
-    task.wait(0.5)
-    
-    if not isRunning or not isAlive() then return end
-    triggerNPC("Ryuga")
-    task.wait(0.5)
+    task.wait(1)
     dialogueEvent:FireServer(unpack({ { Choice = "[ Challenge Build ]" } }))
-    task.wait(0.5)
+    task.wait(1)
     dialogueEvent:FireServer(unpack({ { Exit = true } }))
-    task.wait(0.5)
+    task.wait(1)
 end
 
 -- POST-QUEST: Selesaikan Lost Soul
@@ -698,8 +743,76 @@ local function turnInLostSoulQuest()
     task.wait(1.5)
 end
 
+-- POST-QUEST: Selesaikan Quest Farm Ore
+local function turnInOreQuest()
+    local char = player.Character or player.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart")
+    
+    if (hrp.Position - leeTheMinerCoords.Position).Magnitude > 20 then
+        hrp.CFrame = leeTheMinerCoords
+        task.wait(1.5)
+    end
+    
+    if not isRunning or not isAlive() then return end
+    triggerNPC("LeeTheMiner")
+    task.wait(1)
+    dialogueEvent:FireServer(unpack({ { Choice = "[ Quest ]" } }))
+    task.wait(0.5)
+    dialogueEvent:FireServer(unpack({ { Choice = "[ Repeatable ]" } }))
+    task.wait(0.5)
+    dialogueEvent:FireServer(unpack({ { Choice = "Yes, I've done it." } }))
+    task.wait(0.5)
+    dialogueEvent:FireServer(unpack({ { Exit = true } }))
+    task.wait(1)
+end
+
+-- EXCHANGE: Tukar Item Quest Farm Ore (Setelah 6x Quest)
+local function exchangeOre()
+    local char = player.Character or player.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart")
+    
+    if (hrp.Position - leeTheMinerCoords.Position).Magnitude > 20 then
+        hrp.CFrame = leeTheMinerCoords
+        task.wait(1.5)
+    end
+    
+    if not isRunning or not isAlive() then return end
+    triggerNPC("LeeTheMiner")
+    task.wait(1)
+    dialogueEvent:FireServer(unpack({ { Choice = "[ Exchange ]" } }))
+    task.wait(0.5)
+    dialogueEvent:FireServer(unpack({ { Choice = "[ Confirm ]" } }))
+    task.wait(0.5)
+    dialogueEvent:FireServer(unpack({ { Exit = true } }))
+    task.wait(1)
+end
+
+-- CRAFTING: Craft Blue Sappyre 24x Tanpa Jeda
+local function craftBlueSapphire()
+    local char = player.Character or player.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart")
+    
+    if hrp then hrp.CFrame = craftingCoords end
+    task.wait(1.5)
+    
+    if not isRunning or not isAlive() then return end
+    triggerNPC("UniversalCrafting")
+    task.wait(1)
+    
+    dialogueEvent:FireServer(unpack({ { Choice = "[ Craft ]" } }))
+    task.wait(0.5)
+    
+    -- Teleportasi Remote / Spam Craft 24x tanpa jeda
+    for i = 1, 24 do
+        if not isRunning then break end
+        craftingRemote:FireServer(unpack({ "Special", "Blue Sappyre" }))
+    end
+    task.wait(1)
+end
+
+
 -- ==========================================
--- FUNGSI COMBAT & MAGNET (CASUAL, PERKS, LEGIT, RANDOM)
+-- FUNGSI COMBAT & MAGNET (UNTUK DUNGEON LAIN)
 -- ==========================================
 local function farmSpecificMob(getMobFunction, mobName, timeout)
     statusSub.Text = "Status: Scan " .. mobName .. "..."
@@ -733,6 +846,7 @@ local function farmSpecificMob(getMobFunction, mobName, timeout)
     magnetConnection = RunService.Heartbeat:Connect(function()
         if not isTargetActive or not isRunning or not isAlive() then return end
         local currentMob = getMobFunction()
+        
         if currentMob then
             local targetRoot = currentMob:FindFirstChild("RootPart")
             local targetHumanoid = currentMob:FindFirstChild("Humanoid")
@@ -745,6 +859,8 @@ local function farmSpecificMob(getMobFunction, mobName, timeout)
                 currentChar:PivotTo(targetRoot.CFrame * CFrame.new(0, 0, 3))
             elseif targetHumanoid and targetHumanoid.Health <= 0 then
                 isTargetActive = false
+            elseif not targetRoot or not targetRoot.Parent then
+                isTargetActive = false
             end
         else
             isTargetActive = false
@@ -754,125 +870,14 @@ local function farmSpecificMob(getMobFunction, mobName, timeout)
     local characterRef = player.Character or player.CharacterAdded:Wait()
     local playerHandler = characterRef:WaitForChild("PlayerHandler"):WaitForChild("HandlerEvent")
 
-    -- ==========================================
-    -- LOGIKA COMBAT MODE: "CASUAL" & "PERKS"
-    -- ==========================================
-    if selectedCombat.Name == "Casual" or selectedCombat.Name == "Perks" then
-        local lastUltTime = 0
-        local lastSkill1Time = 0 
-        local lastSkill2Time = 0 
-
-        while isTargetActive and isRunning and isAlive() and task.wait() do
-            local currentMob = getMobFunction()
-            if currentMob and currentMob:FindFirstChild("RootPart") then
-                local aimCFrame = currentMob.RootPart.CFrame 
-
-                if tick() - lastUltTime >= 25 then
-                    if selectedCombat.Name == "Perks" then
-                        playerHandler:FireServer(unpack({ { IsJump = false, Skill = true, Key = "G", MouseData = aimCFrame } }))
-                        task.wait(1.5)
-                    end
-                    
-                    if not isTargetActive or not isRunning or not isAlive() then break end
-                    playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "V", MouseData = aimCFrame } }))
-                    task.wait(2)
-                    lastUltTime = tick()
-                end
-
-                if not isTargetActive or not isRunning or not isAlive() then break end
-
-                if tick() - lastSkill1Time >= 10 then
-                    playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "E", MouseData = aimCFrame } }))
-                    task.wait(1.5)
-                    lastSkill1Time = tick()
-                elseif tick() - lastSkill2Time >= 15 then
-                    playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "R", MouseData = aimCFrame } }))
-                    task.wait(1.5)
-                    lastSkill2Time = tick()
-                else
-                    playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
-                    task.wait(1.5)
-                end
-            else
-                isTargetActive = false
-            end
-        end
-
-    -- ==========================================
-    -- LOGIKA COMBAT MODE: "LEGIT"
-    -- (Perks & Ultimate punya jeda cooldown seperti mode Perks, 
-    -- dan sambil menunggu, melakukan spam berurutan tanpa jeda: Basic -> Heavy -> Skill 1)
-    -- ==========================================
-    elseif selectedCombat.Name == "Legit" then
-        local lastUltTime = 0
-
-        while isTargetActive and isRunning and isAlive() and task.wait() do
-            local currentMob = getMobFunction()
-            if currentMob and currentMob:FindFirstChild("RootPart") then
-                local aimCFrame = currentMob.RootPart.CFrame 
-
-                -- 1. CEK COOLDOWN PERKS & ULTIMATE (Sama seperti mode Perks: setiap 25 detik)
-                if tick() - lastUltTime >= 25 then
-                    -- Picu Perks ("G") dulu dan tunggu 1.5 detik agar animasi tidak gagal
-                    playerHandler:FireServer(unpack({ { IsJump = false, Skill = true, Key = "G", MouseData = aimCFrame } }))
-                    task.wait(1.5)
-                    
-                    if not isTargetActive or not isRunning or not isAlive() then break end
-                    
-                    -- Picu Ultimate ("V")
-                    playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "V", MouseData = aimCFrame } }))
-                    task.wait(2)
-                    lastUltTime = tick()
-                end
-
-                if not isTargetActive or not isRunning or not isAlive() then break end
-
-                -- 2. SEMBARI MENUNGGU JEDA PERKS & ULTIMATE, SPAM BERURUTAN TANPA JEDA PANJANG:
-                -- Basic Attack -> Heavy Attack -> Skill 1 ("E")
-                
-                -- Basic Attack
-                playerHandler:FireServer(unpack({ { CombatAction = true, LightAttack = true, MouseData = aimCFrame } }))
-                task.wait(0.1)
-                if not isTargetActive or not isRunning or not isAlive() then break end
-
-                -- Heavy Attack
-                playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
-                task.wait(0.1)
-                if not isTargetActive or not isRunning or not isAlive() then break end
-
-                -- Skill 1 ("E")
-                playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "E", MouseData = aimCFrame } }))
-                task.wait(0.1)
-
-            else
-                isTargetActive = false
-            end
-        end
-
-    -- ==========================================
-    -- LOGIKA COMBAT MODE: "RANDOM"
-    -- ==========================================
-    elseif selectedCombat.Name == "Random" then
-        while isTargetActive and isRunning and isAlive() and task.wait(0.3) do
-            local currentMob = getMobFunction()
-            if currentMob and currentMob:FindFirstChild("RootPart") then
-                local aimCFrame = currentMob.RootPart.CFrame
-                local randomChoice = math.random(1, 5)
-                
-                if randomChoice == 1 then
-                    playerHandler:FireServer(unpack({ { CombatAction = true, LightAttack = true, MouseData = aimCFrame } }))
-                elseif randomChoice == 2 then
-                    playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
-                elseif randomChoice == 3 then
-                    playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "E", MouseData = aimCFrame } }))
-                elseif randomChoice == 4 then
-                    playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "R", MouseData = aimCFrame } }))
-                elseif randomChoice == 5 then
-                    playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "V", MouseData = aimCFrame } }))
-                end
-            else
-                isTargetActive = false
-            end
+    while isTargetActive and isRunning and isAlive() and task.wait() do
+        local currentMob = getMobFunction()
+        if currentMob and currentMob:FindFirstChild("RootPart") then
+            local aimCFrame = currentMob.RootPart.CFrame 
+            playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
+            task.wait(0.12)
+        else
+            isTargetActive = false
         end
     end
 
@@ -888,6 +893,8 @@ end
 -- ==========================================
 local function mainLoop()
     local needsHenshin = true
+    local oreQuestCount = 0   -- Counter quest selesai (ke 6)
+    local exchangeSessionCount = 0 -- Counter sesi exchange (ke 3)
 
     while isRunning do
         -- Cek Kematian / Respawn
@@ -899,15 +906,130 @@ local function mainLoop()
             if not isRunning then break end
         end
 
-        -- 1. AUTO HENSHIN (Hanya berjalan jika baru mulai atau setelah respawn)
+        -- 1. AUTO HENSHIN 
         if needsHenshin then
             local successHenshin = doAutoHenshin()
             if not successHenshin then continue end
             if not isRunning then break end
             needsHenshin = false
         end
+        
+        -- ==========================================
+        -- LOGIKA KHUSUS MODE: "FARM ORE"
+        -- ==========================================
+        if selectedMode.ModeName == "Farm Ore" then
+            statusSub.Text = "Status: Mengambil Quest Ore..."
+            takeOreQuest()
+            if not isAlive() then continue end
+            if not isRunning then break end
+            
+            -- Equip Tool Attack
+            local currentCharacter = player.Character or player.CharacterAdded:Wait()
+            local attackTool = player.Backpack:FindFirstChild("Attack")
+            if attackTool then
+                currentCharacter:WaitForChild("Humanoid"):EquipTool(attackTool)
+            end
+            
+            -- Menghitung MiningGoon (Pola bergantian: 1, lalu 2, lalu 1, lalu 2... sampai 12)
+            local killedCount = 0
+            local addTwoNext = false
+            while killedCount < 12 and isRunning and isAlive() do
+                statusSub.Text = "Status: Farm MiningGoon (" .. killedCount .. "/12)"
+                
+                local targetMob = nil
+                if workspace:FindFirstChild("Mobs") then
+                    local mobsList = workspace.Mobs:GetChildren()
+                    for i = 1, #mobsList do
+                        local mob = mobsList[i]
+                        if mob and mob.Name == "MiningGoon" then
+                            local root = mob:FindFirstChild("RootPart")
+                            if root then
+                                targetMob = mob
+                                break
+                            end
+                        end
+                    end
+                end
+                
+                if targetMob and targetMob:FindFirstChild("RootPart") then
+                    local targetRoot = targetMob.RootPart
+                    local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+                    local playerHandler = player.Character and player.Character:FindFirstChild("PlayerHandler") and player.Character.PlayerHandler:FindFirstChild("HandlerEvent")
+                    
+                    local connection
+                    connection = RunService.Heartbeat:Connect(function()
+                        if hrp and targetRoot and targetRoot.Parent then
+                            hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                            hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+                            player.Character:PivotTo(targetRoot.CFrame * CFrame.new(0, 0, 3))
+                        end
+                    end)
+                    
+                    while targetMob and targetMob.Parent and targetRoot and targetRoot.Parent and isRunning and isAlive() do
+                        if playerHandler then
+                            local aimCFrame = targetRoot.CFrame
+                            playerHandler:FireServer(unpack({ { CombatAction = true, AttackType = "Down", HeavyAttack = true, MouseData = aimCFrame } }))
+                        end
+                        task.wait(0.12)
+                    end
+                    
+                    if connection then connection:Disconnect() end
+                    
+                    if addTwoNext then
+                        killedCount = killedCount + 2
+                        addTwoNext = false
+                    else
+                        killedCount = killedCount + 1
+                        addTwoNext = true
+                    end
+                    task.wait(0.5)
+                else
+                    statusSub.Text = "Status: Menunggu MiningGoon Spawn..."
+                    task.wait(1)
+                end
+            end
+            
+            if not isAlive() then continue end
+            if not isRunning then break end
+            
+            -- Simpan kembali tool attack ke backpack
+            local activeChar = player.Character
+            if activeChar then
+                local equippedTool = activeChar:FindFirstChild("Attack")
+                if equippedTool then equippedTool.Parent = player.Backpack end
+            end
+            
+            statusSub.Text = "Status: Menyelesaikan Quest Ore..."
+            turnInOreQuest()
+            if not isAlive() then continue end
+            if not isRunning then break end
+            
+            -- Menghitung quest selesai (sampai 6 kali)
+            oreQuestCount = oreQuestCount + 1
+            if oreQuestCount >= 6 then
+                statusSub.Text = "Status: Exchange Ore..."
+                exchangeOre()
+                oreQuestCount = 0
+                
+                -- Tambahkan hitungan sesi exchange
+                exchangeSessionCount = exchangeSessionCount + 1
+                
+                -- Jika sudah 3x Sesi Exchange -> Lakukan Crafting
+                if exchangeSessionCount >= 3 then
+                    statusSub.Text = "Status: Crafting Blue Saphire..."
+                    craftBlueSapphire()
+                    exchangeSessionCount = 0 -- Reset counter
+                end
+            end
+            
+            -- Tanpa jeda, langsung looping balik ke quest
+            continue
+        end
 
-        -- 2. AMBIL QUEST JIKA DI MODE QUEST
+        -- ==========================================
+        -- LOGIKA NORMAL UNTUK DUNGEON / YEN FARM / LOST SOUL
+        -- ==========================================
+        
         if selectedMode.ModeName == "Yen Farm" then
             statusSub.Text = "Status: Mengambil Quest Ryuga..."
             takeYenFarmQuest()
@@ -919,7 +1041,7 @@ local function mainLoop()
             if not isRunning then break end
         end
 
-        -- 3. BUAT LOBBY & START DUNGEON
+        -- BUAT LOBBY & START DUNGEON
         statusSub.Text = "Status: Membuat " .. selectedDungeon.Name .. " (" .. selectedDiff.Name .. ")"
         if not isAlive() then continue end
         if not isRunning then break end
@@ -958,9 +1080,7 @@ local function mainLoop()
             currentCharacter:WaitForChild("Humanoid"):EquipTool(attackTool)
         end
 
-        -- ==========================================
-        -- 4. LOGIKA MONSTER BERCABANG BERDASARKAN MAP
-        -- ==========================================
+        -- LOGIKA MONSTER BERCABANG BERDASARKAN MAP
         local mapStr = selectedDungeon.Map
         local farmSuccess = true
         
@@ -1015,7 +1135,7 @@ local function mainLoop()
             continue
         end
         
-        -- 5. SIMPAN TOOL ATTACK
+        -- SIMPAN TOOL ATTACK
         statusSub.Text = "Status: Dungeon Selesai!"
         local activeChar = player.Character
         if activeChar then
@@ -1023,7 +1143,7 @@ local function mainLoop()
             if equippedTool then equippedTool.Parent = player.Backpack end
         end
         
-        -- 6. JEDA ISTIRAHAT 10 DETIK SEBELUM SELESAIKAN QUEST
+        -- JEDA ISTIRAHAT 10 DETIK SEBELUM SELESAIKAN QUEST
         for i = 1, 10 do
             if not isRunning or not isAlive() then break end
             statusSub.Text = "Status: Istirahat " .. (11 - i) .. "s"
@@ -1031,7 +1151,7 @@ local function mainLoop()
         end
         if not isAlive() then continue end
 
-        -- 7. SELESAIKAN QUEST (JIKA MODE QUEST)
+        -- SELESAIKAN QUEST (JIKA MODE QUEST)
         if selectedMode.ModeName == "Yen Farm" and isRunning then
             statusSub.Text = "Status: Menyelesaikan Quest Ryuga..."
             turnInYenFarmQuest()
