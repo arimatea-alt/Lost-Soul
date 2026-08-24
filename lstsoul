@@ -882,12 +882,21 @@ local function mainLoop()
             if not isRunning then break end
         end
 
-        -- 3. BUAT LOBBY & START DUNGEON
+        -- 3. BUAT LOBBY & START DUNGEON (Perbaikan argument unpacking)
         statusSub.Text = "Status: Membuat " .. selectedDungeon.Name .. " (" .. selectedDiff.Name .. ")"
         if not isAlive() then continue end
         if not isRunning then break end
         
-        local sessionID = lobbyAction:InvokeServer("create", "public", selectedDungeon.Type, selectedDungeon.Map, 2, selectedDiff.Int)
+        -- Membungkus argumen ke dalam table lalu di-unpack sesuai permintaan
+        local lobbyArgs = {
+            "create",
+            "public",
+            selectedDungeon.Type,
+            selectedDungeon.Map,
+            2,
+            selectedDiff.Int -- Int menyesuaikan Easy (1), Normal (2), Hard (3), Extreme (4)
+        }
+        local sessionID = lobbyAction:InvokeServer(unpack(lobbyArgs))
         task.wait(1)
         
         if not isAlive() then continue end
