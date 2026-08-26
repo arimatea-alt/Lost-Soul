@@ -838,7 +838,7 @@ local function turnInOreQuest() local char = player.Character or player.Characte
 local function exchangeOre() local char = player.Character or player.CharacterAdded:Wait() local hrp = char:WaitForChild("HumanoidRootPart") if (hrp.Position - leeTheMinerCoords.Position).Magnitude > 20 then hrp.CFrame = leeTheMinerCoords task.wait(1.5) end triggerNPC("LeeTheMiner") task.wait(1) dialogueEvent:FireServer(unpack({ { Choice = "[ Exchange ]" } })) task.wait(0.5) dialogueEvent:FireServer(unpack({ { Choice = "[ Confirm ]" } })) task.wait(0.5) dialogueEvent:FireServer(unpack({ { Exit = true } })) task.wait(1) end
 local function craftBlueSapphire() local char = player.Character or player.CharacterAdded:Wait() local hrp = char:WaitForChild("HumanoidRootPart") if hrp then hrp.CFrame = craftingCoords end task.wait(1.5) triggerNPC("UniversalCrafting") task.wait(1) dialogueEvent:FireServer(unpack({ { Choice = "[ Craft ]" } })) task.wait(0.5) for i = 1, 24 do craftingRemote:FireServer(unpack({ "Special", "Blue Sappyre" })) end task.wait(1) end
 
--- FUNGSI BARU UNTUK LIVING PAPERS
+-- FUNGSI UNTUK LIVING PAPERS
 local function takeLivingPapersQuest()
     local char = player.Character or player.CharacterAdded:Wait()
     local hrp = char:WaitForChild("HumanoidRootPart")
@@ -1028,7 +1028,7 @@ local function mainLoop()
     local needsHenshin = true
     local oreQuestCount = 0   
     local exchangeSessionCount = 0 
-    local livingPapersQuestCount = 0 -- Counter baru untuk Mode Living Papers
+    local livingPapersQuestCount = 0 
 
     while isRunning do
         if not isAlive() then
@@ -1047,7 +1047,7 @@ local function mainLoop()
         end
         
         -- ==========================================
-        -- LOGIKA BARU: FARM LIVING PAPERS
+        -- LOGIKA BARU: FARM LIVING PAPERS (FIXED)
         -- ==========================================
         if selectedMode.ModeName == "Farm Living Papers" then
             if livingPapersQuestCount == 0 then
@@ -1069,7 +1069,17 @@ local function mainLoop()
                 currentCharacter.HumanoidRootPart.CFrame = smartUncleLoc
                 task.wait(0.5)
             end
-            farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Fyze") end return nil end, "Fyze", 5)
+            farmSpecificMob(function() 
+                if workspace:FindFirstChild("Mobs") then 
+                    for _, mob in ipairs(workspace.Mobs:GetChildren()) do
+                        if mob.Name == "Fyze" and mob:FindFirstChild("RootPart") then
+                            local hum = mob:FindFirstChild("Humanoid")
+                            if not hum or hum.Health > 0 then return mob end
+                        end
+                    end
+                end 
+                return nil 
+            end, "Fyze", 5)
             if not isRunning or not isAlive() then continue end
 
             -- 2. Target Kyza
@@ -1078,42 +1088,42 @@ local function mainLoop()
                 currentCharacter.HumanoidRootPart.CFrame = kyzaLoc
                 task.wait(1)
             end
-            farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Kyza") end return nil end, "Kyza", 5)
+            farmSpecificMob(function() 
+                if workspace:FindFirstChild("Mobs") then 
+                    for _, mob in ipairs(workspace.Mobs:GetChildren()) do
+                        if mob.Name == "Kyza" and mob:FindFirstChild("RootPart") then
+                            local hum = mob:FindFirstChild("Humanoid")
+                            if not hum or hum.Health > 0 then return mob end
+                        end
+                    end
+                end 
+                return nil 
+            end, "Kyza", 5)
             if not isRunning or not isAlive() then continue end
 
-            -- 3. Target Steed (Kill 2x)
+            -- 3. Target Steed (Teleport ke tempat sebelum Kyza & Kill 1x Saja)
             statusSub.Text = "Status: Menuju Steed..."
             if currentCharacter and currentCharacter:FindFirstChild("HumanoidRootPart") then
-                currentCharacter.HumanoidRootPart.CFrame = smartUncleLoc
+                -- Teleport ke lokasi sebelum Kyza agar bisa men-scan Steed
+                currentCharacter.HumanoidRootPart.CFrame = smartUncleLoc 
                 task.wait(1)
             end
             
-            local steedKilled = 0
-            while steedKilled < 2 and isRunning and isAlive() do
-                local steedFound = farmSpecificMob(function()
-                    if workspace:FindFirstChild("Mobs") then
-                        for _, mob in ipairs(workspace.Mobs:GetChildren()) do
-                            if mob.Name == "Steed" and mob:FindFirstChild("RootPart") then
-                                local hum = mob:FindFirstChild("Humanoid")
-                                if not hum or hum.Health > 0 then
-                                    return mob
-                                end
-                            end
+            -- Membunuh Steed 1x saja tanpa ada while loop yang tidak berhenti
+            farmSpecificMob(function() 
+                if workspace:FindFirstChild("Mobs") then 
+                    for _, mob in ipairs(workspace.Mobs:GetChildren()) do
+                        if mob.Name == "Steed" and mob:FindFirstChild("RootPart") then
+                            local hum = mob:FindFirstChild("Humanoid")
+                            if not hum or hum.Health > 0 then return mob end
                         end
                     end
-                    return nil
-                end, "Steed (" .. (steedKilled + 1) .. "/2)", 5)
-                
-                if steedFound then
-                    steedKilled = steedKilled + 1
-                else
-                    statusSub.Text = "Menunggu Steed Spawn..."
-                    task.wait(1)
-                end
-            end
+                end 
+                return nil 
+            end, "Steed", 5)
             if not isRunning or not isAlive() then continue end
 
-            -- Lapor Quest & Ambil Ulang
+            -- Lapor Quest & Ambil Ulang (Hanya dipanggil SETELAH membunuh Steed)
             statusSub.Text = "Status: Menyelesaikan Quest Smart..."
             turnInLivingPapersQuest()
             livingPapersQuestCount = livingPapersQuestCount + 1
@@ -1122,7 +1132,7 @@ local function mainLoop()
             if livingPapersQuestCount >= 8 then
                 statusSub.Text = "Status: Exchange Unknown Cards..."
                 exchangeLivingPapers()
-                livingPapersQuestCount = 0 -- Reset kembali
+                livingPapersQuestCount = 0 -- Reset kembali ke 0
             end
             
             continue
