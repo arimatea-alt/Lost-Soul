@@ -79,6 +79,12 @@ local gameModes = {
         Dungeons = {
             { Name = "Farm MiningGoon", Type = "farm", Map = "None", Difficulties = { {Name = "Normal", Int = 1} } }
         }
+    },
+    {
+        ModeName = "Single",
+        Dungeons = {
+            { Name = "Current Map", Type = "none", Map = "None", Difficulties = { {Name = "None", Int = 1} } }
+        }
     }
 }
 
@@ -90,13 +96,20 @@ local combatModes = {
     { Name = "Random" }
 }
 
+local henshinModes = {
+    { Name = "Henshin ON" },
+    { Name = "Henshin OFF" }
+}
+
 local selectedMode = gameModes[1]
 local selectedDungeon = selectedMode.Dungeons[1]
 local selectedDiff = selectedDungeon.Difficulties[1]
 local selectedCombat = combatModes[1]
+local selectedHenshin = henshinModes[1]
+local selectedSingleMob = ""
 
 -- ==========================================
--- PEMBUATAN GUI (INTERACE)
+-- PEMBUATAN GUI (INTERFACE)
 -- ==========================================
 if targetGuiParent:FindFirstChild("AutoDungeonGUI") then
     targetGuiParent.AutoDungeonGUI:Destroy()
@@ -112,7 +125,7 @@ mainFrame.Name = "MainFrame"
 mainFrame.Parent = screenGui
 mainFrame.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
 mainFrame.Position = UDim2.new(0.05, 0, 0.1, 0)
-mainFrame.Size = UDim2.new(0, 240, 0, 355)
+mainFrame.Size = UDim2.new(0, 240, 0, 385)
 mainFrame.BorderSizePixel = 0
 mainFrame.ClipsDescendants = false
 
@@ -213,7 +226,6 @@ createButtonAnim(minButton, colorMinN, colorMinH)
 -- ==========================================
 -- DROPDOWN SELECTIONS
 -- ==========================================
-
 local modeBtn = Instance.new("TextButton")
 modeBtn.Parent = mainFrame
 modeBtn.BackgroundColor3 = Color3.fromRGB(39, 39, 42)
@@ -224,7 +236,7 @@ modeBtn.Text = "Mode: " .. selectedMode.ModeName .. " ▼"
 modeBtn.TextColor3 = Color3.fromRGB(228, 228, 231)
 modeBtn.TextSize = 11
 modeBtn.AutoButtonColor = false
-modeBtn.ZIndex = 7
+modeBtn.ZIndex = 8
 local cornerMode = Instance.new("UICorner")
 cornerMode.CornerRadius = UDim.new(0, 6)
 cornerMode.Parent = modeBtn
@@ -240,6 +252,7 @@ modeList.ZIndex = 25
 local mlLayout = Instance.new("UIListLayout")
 mlLayout.Parent = modeList
 
+-- UI DUNGEON
 local dungeonBtn = Instance.new("TextButton")
 dungeonBtn.Parent = mainFrame
 dungeonBtn.BackgroundColor3 = Color3.fromRGB(39, 39, 42)
@@ -250,7 +263,7 @@ dungeonBtn.Text = "Map: " .. selectedDungeon.Name .. " ▼"
 dungeonBtn.TextColor3 = Color3.fromRGB(228, 228, 231)
 dungeonBtn.TextSize = 11
 dungeonBtn.AutoButtonColor = false
-dungeonBtn.ZIndex = 6
+dungeonBtn.ZIndex = 7
 local cornerDung = Instance.new("UICorner")
 cornerDung.CornerRadius = UDim.new(0, 6)
 cornerDung.Parent = dungeonBtn
@@ -281,7 +294,7 @@ diffBtn.Text = "Diff: " .. selectedDiff.Name .. " ▼"
 diffBtn.TextColor3 = Color3.fromRGB(228, 228, 231)
 diffBtn.TextSize = 11
 diffBtn.AutoButtonColor = false
-diffBtn.ZIndex = 5
+diffBtn.ZIndex = 6
 local cornerDiff = Instance.new("UICorner")
 cornerDiff.CornerRadius = UDim.new(0, 6)
 cornerDiff.Parent = diffBtn
@@ -297,6 +310,56 @@ diffList.ZIndex = 15
 local dl2Layout = Instance.new("UIListLayout")
 dl2Layout.Parent = diffList
 
+-- UI SINGLE MODE
+local searchBar = Instance.new("TextBox")
+searchBar.Parent = mainFrame
+searchBar.BackgroundColor3 = Color3.fromRGB(39, 39, 42)
+searchBar.Position = UDim2.new(0.5, -95, 0, 74)
+searchBar.Size = UDim2.new(0, 190, 0, 26)
+searchBar.Font = Enum.Font.Gotham
+searchBar.PlaceholderText = "🔍 Cari Nama Mob..."
+searchBar.Text = ""
+searchBar.TextColor3 = Color3.fromRGB(228, 228, 231)
+searchBar.TextSize = 11
+searchBar.Visible = false
+searchBar.ZIndex = 7
+local cornerSearch = Instance.new("UICorner")
+cornerSearch.CornerRadius = UDim.new(0, 6)
+cornerSearch.Parent = searchBar
+
+local singleMobBtn = Instance.new("TextButton")
+singleMobBtn.Parent = mainFrame
+singleMobBtn.BackgroundColor3 = Color3.fromRGB(39, 39, 42)
+singleMobBtn.Position = UDim2.new(0.5, -95, 0, 104)
+singleMobBtn.Size = UDim2.new(0, 190, 0, 26)
+singleMobBtn.Font = Enum.Font.GothamSemibold
+singleMobBtn.Text = "Pilih Mob: None ▼"
+singleMobBtn.TextColor3 = Color3.fromRGB(228, 228, 231)
+singleMobBtn.TextSize = 11
+singleMobBtn.AutoButtonColor = false
+singleMobBtn.Visible = false
+singleMobBtn.ZIndex = 6
+local cornerSingleMob = Instance.new("UICorner")
+cornerSingleMob.CornerRadius = UDim.new(0, 6)
+cornerSingleMob.Parent = singleMobBtn
+createButtonAnim(singleMobBtn, Color3.fromRGB(39, 39, 42), Color3.fromRGB(63, 63, 70))
+
+local singleMobList = Instance.new("Frame")
+singleMobList.Parent = mainFrame
+singleMobList.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
+singleMobList.Position = UDim2.new(0.5, -95, 0, 132)
+singleMobList.Size = UDim2.new(0, 190, 0, 100)
+singleMobList.Visible = false
+singleMobList.ZIndex = 20
+local scrollSM = Instance.new("ScrollingFrame")
+scrollSM.Parent = singleMobList
+scrollSM.Size = UDim2.new(1, 0, 1, 0)
+scrollSM.BackgroundTransparency = 1
+scrollSM.ScrollBarThickness = 4
+local smLayout = Instance.new("UIListLayout")
+smLayout.Parent = scrollSM
+
+-- UI COMBAT
 local combatBtn = Instance.new("TextButton")
 combatBtn.Parent = mainFrame
 combatBtn.BackgroundColor3 = Color3.fromRGB(39, 39, 42)
@@ -307,7 +370,7 @@ combatBtn.Text = "Combat: " .. selectedCombat.Name .. " ▼"
 combatBtn.TextColor3 = Color3.fromRGB(228, 228, 231)
 combatBtn.TextSize = 11
 combatBtn.AutoButtonColor = false
-combatBtn.ZIndex = 4
+combatBtn.ZIndex = 5
 local cornerCombat = Instance.new("UICorner")
 cornerCombat.CornerRadius = UDim.new(0, 6)
 cornerCombat.Parent = combatBtn
@@ -323,6 +386,101 @@ combatList.ZIndex = 12
 local cmLayout = Instance.new("UIListLayout")
 cmLayout.Parent = combatList
 
+-- UI HENSHIN TOGGLE
+local henshinBtn = Instance.new("TextButton")
+henshinBtn.Parent = mainFrame
+henshinBtn.BackgroundColor3 = Color3.fromRGB(39, 39, 42)
+henshinBtn.Position = UDim2.new(0.5, -95, 0, 164)
+henshinBtn.Size = UDim2.new(0, 190, 0, 26)
+henshinBtn.Font = Enum.Font.GothamSemibold
+henshinBtn.Text = "Henshin: " .. selectedHenshin.Name .. " ▼"
+henshinBtn.TextColor3 = Color3.fromRGB(228, 228, 231)
+henshinBtn.TextSize = 11
+henshinBtn.AutoButtonColor = false
+henshinBtn.ZIndex = 4
+local cornerHenshin = Instance.new("UICorner")
+cornerHenshin.CornerRadius = UDim.new(0, 6)
+cornerHenshin.Parent = henshinBtn
+createButtonAnim(henshinBtn, Color3.fromRGB(39, 39, 42), Color3.fromRGB(63, 63, 70))
+
+local henshinList = Instance.new("Frame")
+henshinList.Parent = mainFrame
+henshinList.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
+henshinList.Position = UDim2.new(0.5, -95, 0, 192)
+henshinList.Size = UDim2.new(0, 190, 0, #henshinModes * 26)
+henshinList.Visible = false
+henshinList.ZIndex = 12
+local hmLayout = Instance.new("UIListLayout")
+hmLayout.Parent = henshinList
+
+-- LOGIKA LIVE SCAN SINGLE MOB
+local function refreshSingleMobList()
+    if selectedMode.ModeName ~= "Single" then return end
+    
+    local foundMobs = {}
+    if workspace:FindFirstChild("Mobs") then
+        for _, mob in ipairs(workspace.Mobs:GetChildren()) do
+            if mob:FindFirstChild("RootPart") then
+                local hum = mob:FindFirstChild("Humanoid")
+                if not hum or hum.Health > 0 then
+                    foundMobs[mob.Name] = true
+                end
+            end
+        end
+    end
+
+    local filterText = string.lower(searchBar.Text)
+    
+    for _, child in pairs(scrollSM:GetChildren()) do
+        if child:IsA("TextButton") then child:Destroy() end
+    end
+    
+    local mobCount = 0
+    for mobName, _ in pairs(foundMobs) do
+        if filterText == "" or string.find(string.lower(mobName), filterText) then
+            mobCount = mobCount + 1
+            local item = Instance.new("TextButton")
+            item.Parent = scrollSM
+            item.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
+            item.Size = UDim2.new(1, 0, 0, 26)
+            item.Font = Enum.Font.Gotham
+            item.Text = mobName
+            item.TextColor3 = Color3.fromRGB(212, 212, 216)
+            item.TextSize = 11
+            item.AutoButtonColor = false
+            item.ZIndex = 21
+            createButtonAnim(item, Color3.fromRGB(24, 24, 27), Color3.fromRGB(63, 63, 70))
+            
+            item.MouseButton1Click:Connect(function()
+                selectedSingleMob = mobName
+                singleMobBtn.Text = "Pilih Mob: " .. mobName .. " ▼"
+                singleMobList.Visible = false
+                searchBar.Text = ""
+            end)
+        end
+    end
+    scrollSM.CanvasSize = UDim2.new(0, 0, 0, mobCount * 26)
+end
+
+searchBar:GetPropertyChangedSignal("Text"):Connect(function()
+    singleMobList.Visible = true
+    refreshSingleMobList()
+end)
+
+searchBar.Focused:Connect(function()
+    singleMobList.Visible = true
+    refreshSingleMobList()
+end)
+
+task.spawn(function()
+    while task.wait(1) do
+        if singleMobList.Visible then
+            refreshSingleMobList()
+        end
+    end
+end)
+
+-- UPDATE UI & DROPDOWNS
 local function updateDungeonList()
     for _, child in pairs(scrollDL:GetChildren()) do
         if child:IsA("TextButton") then child:Destroy() end
@@ -396,8 +554,22 @@ for i, mObj in ipairs(gameModes) do
         selectedMode = mObj
         modeBtn.Text = "Mode: " .. mObj.ModeName .. " ▼"
         modeList.Visible = false
-        updateDungeonList()
-        updateDiffList()
+        
+        if mObj.ModeName == "Single" then
+            dungeonBtn.Visible = false
+            diffBtn.Visible = false
+            searchBar.Visible = true
+            singleMobBtn.Visible = true
+            singleMobBtn.Text = selectedSingleMob == "" and "Pilih Mob: None ▼" or "Pilih Mob: " .. selectedSingleMob .. " ▼"
+        else
+            dungeonBtn.Visible = true
+            diffBtn.Visible = true
+            searchBar.Visible = false
+            singleMobBtn.Visible = false
+            singleMobList.Visible = false
+            updateDungeonList()
+            updateDiffList()
+        end
     end)
 end
 
@@ -420,13 +592,34 @@ for i, cmObj in ipairs(combatModes) do
     end)
 end
 
+for i, hmObj in ipairs(henshinModes) do
+    local item = Instance.new("TextButton")
+    item.Parent = henshinList
+    item.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
+    item.Size = UDim2.new(1, 0, 0, 26)
+    item.Font = Enum.Font.Gotham
+    item.Text = hmObj.Name
+    item.TextColor3 = Color3.fromRGB(212, 212, 216)
+    item.TextSize = 11
+    item.AutoButtonColor = false
+    item.ZIndex = 13
+    createButtonAnim(item, Color3.fromRGB(24, 24, 27), Color3.fromRGB(63, 63, 70))
+    item.MouseButton1Click:Connect(function()
+        selectedHenshin = hmObj
+        henshinBtn.Text = "Henshin: " .. hmObj.Name .. " ▼"
+        henshinList.Visible = false
+    end)
+end
+
 updateDungeonList()
 updateDiffList()
 
-modeBtn.MouseButton1Click:Connect(function() modeList.Visible = not modeList.Visible dungeonList.Visible = false diffList.Visible = false combatList.Visible = false end)
-dungeonBtn.MouseButton1Click:Connect(function() dungeonList.Visible = not dungeonList.Visible modeList.Visible = false diffList.Visible = false combatList.Visible = false end)
-diffBtn.MouseButton1Click:Connect(function() diffList.Visible = not diffList.Visible modeList.Visible = false dungeonList.Visible = false combatList.Visible = false end)
-combatBtn.MouseButton1Click:Connect(function() combatList.Visible = not combatList.Visible modeList.Visible = false dungeonList.Visible = false diffList.Visible = false end)
+modeBtn.MouseButton1Click:Connect(function() modeList.Visible = not modeList.Visible dungeonList.Visible = false diffList.Visible = false combatList.Visible = false henshinList.Visible = false singleMobList.Visible = false end)
+dungeonBtn.MouseButton1Click:Connect(function() dungeonList.Visible = not dungeonList.Visible modeList.Visible = false diffList.Visible = false combatList.Visible = false henshinList.Visible = false end)
+diffBtn.MouseButton1Click:Connect(function() diffList.Visible = not diffList.Visible modeList.Visible = false dungeonList.Visible = false combatList.Visible = false henshinList.Visible = false end)
+singleMobBtn.MouseButton1Click:Connect(function() singleMobList.Visible = not singleMobList.Visible modeList.Visible = false combatList.Visible = false henshinList.Visible = false if singleMobList.Visible then refreshSingleMobList() end end)
+combatBtn.MouseButton1Click:Connect(function() combatList.Visible = not combatList.Visible modeList.Visible = false dungeonList.Visible = false diffList.Visible = false henshinList.Visible = false singleMobList.Visible = false end)
+henshinBtn.MouseButton1Click:Connect(function() henshinList.Visible = not henshinList.Visible modeList.Visible = false dungeonList.Visible = false diffList.Visible = false combatList.Visible = false singleMobList.Visible = false end)
 
 -- ==========================================
 -- TOMBOL UTAMA, TOMBOL EKSTRA & STATUS
@@ -437,7 +630,7 @@ local colorOn = Color3.fromRGB(16, 185, 129)
 local toggleButton = Instance.new("TextButton")
 toggleButton.Parent = mainFrame
 toggleButton.BackgroundColor3 = colorOff
-toggleButton.Position = UDim2.new(0.5, -95, 0, 172)
+toggleButton.Position = UDim2.new(0.5, -95, 0, 202)
 toggleButton.Size = UDim2.new(0, 190, 0, 32)
 toggleButton.Font = Enum.Font.GothamBold
 toggleButton.Text = "START FARMING"
@@ -452,7 +645,7 @@ cornerToggle.Parent = toggleButton
 local exchangeButton = Instance.new("TextButton")
 exchangeButton.Parent = mainFrame
 exchangeButton.BackgroundColor3 = Color3.fromRGB(59, 130, 246)
-exchangeButton.Position = UDim2.new(0.5, -95, 0, 208)
+exchangeButton.Position = UDim2.new(0.5, -95, 0, 238)
 exchangeButton.Size = UDim2.new(0, 190, 0, 28)
 exchangeButton.Font = Enum.Font.GothamBold
 exchangeButton.Text = "EXCHANGE ORE"
@@ -468,7 +661,7 @@ createButtonAnim(exchangeButton, Color3.fromRGB(59, 130, 246), Color3.fromRGB(96
 local craftButton = Instance.new("TextButton")
 craftButton.Parent = mainFrame
 craftButton.BackgroundColor3 = Color3.fromRGB(168, 85, 247)
-craftButton.Position = UDim2.new(0.5, -95, 0, 240)
+craftButton.Position = UDim2.new(0.5, -95, 0, 270)
 craftButton.Size = UDim2.new(0, 190, 0, 28)
 craftButton.Font = Enum.Font.GothamBold
 craftButton.Text = "CRAFT BLUE SAPPHIRE"
@@ -484,7 +677,7 @@ createButtonAnim(craftButton, Color3.fromRGB(168, 85, 247), Color3.fromRGB(192, 
 local statusSub = Instance.new("TextLabel")
 statusSub.Parent = mainFrame
 statusSub.BackgroundTransparency = 1
-statusSub.Position = UDim2.new(0, 0, 0, 305)
+statusSub.Position = UDim2.new(0, 0, 0, 335)
 statusSub.Size = UDim2.new(1, 0, 0, 20)
 statusSub.Font = Enum.Font.Gotham
 statusSub.Text = "Status: IDLE"
@@ -567,12 +760,11 @@ UserInputService.InputChanged:Connect(function(input)
 end)
 
 closeButton.MouseButton1Click:Connect(function() isRunning = false screenGui:Destroy() end)
-minButton.MouseButton1Click:Connect(function() modeList.Visible = false dungeonList.Visible = false diffList.Visible = false combatList.Visible = false minBubble.Position = UDim2.new(0, mainFrame.AbsolutePosition.X, 0, mainFrame.AbsolutePosition.Y) mainFrame.Visible = false minBubble.Visible = true end)
+minButton.MouseButton1Click:Connect(function() modeList.Visible = false dungeonList.Visible = false diffList.Visible = false combatList.Visible = false henshinList.Visible = false singleMobList.Visible = false minBubble.Position = UDim2.new(0, mainFrame.AbsolutePosition.X, 0, mainFrame.AbsolutePosition.Y) mainFrame.Visible = false minBubble.Visible = true end)
 
 -- ==========================================
 -- FUNGSI BANTUAN & DEATH DETECTION
 -- ==========================================
-
 local function isAlive()
     local char = player.Character
     if not char then return false end
@@ -582,6 +774,10 @@ local function isAlive()
 end
 
 local function doAutoHenshin()
+    if selectedHenshin.Name == "Henshin OFF" then
+        return true
+    end
+
     if not isAlive() then return false end
     statusSub.Text = "Status: Auto Henshin 1..."
     
@@ -623,246 +819,26 @@ local function triggerNPC(npcName)
     end
 end
 
--- PRE-QUEST: Ambil Quest Yen Farm
-local function takeYenFarmQuest()
-    local char = player.Character or player.CharacterAdded:Wait()
-    local hrp = char:WaitForChild("HumanoidRootPart")
-    
-    if (hrp.Position - ryugaCoords.Position).Magnitude > 20 then
-        hrp.CFrame = ryugaCoords
-        task.wait(1.5)
-    end
-    
-    if not isRunning or not isAlive() then return end
-    triggerNPC("Ryuga")
-    task.wait(0.5)
-    dialogueEvent:FireServer(unpack({ { Choice = "[ Repeatable Quest ]" } }))
-    task.wait(0.5)
-    dialogueEvent:FireServer(unpack({ { Exit = true } }))
-    task.wait(0.5)
-    
-    if not isRunning or not isAlive() then return end
-    triggerNPC("Ryuga")
-    task.wait(0.5)
-    dialogueEvent:FireServer(unpack({ { Choice = "[ Challenge Build ]" } }))
-    task.wait(0.5)
-    dialogueEvent:FireServer(unpack({ { Exit = true } }))
-    task.wait(0.5)
-end
+local function takeYenFarmQuest() local char = player.Character or player.CharacterAdded:Wait() local hrp = char:WaitForChild("HumanoidRootPart") if (hrp.Position - ryugaCoords.Position).Magnitude > 20 then hrp.CFrame = ryugaCoords task.wait(1.5) end if not isRunning or not isAlive() then return end triggerNPC("Ryuga") task.wait(1) dialogueEvent:FireServer(unpack({ { Choice = "[ Repeatable Quest ]" } })) task.wait(1) dialogueEvent:FireServer(unpack({ { Exit = true } })) task.wait(1) if not isRunning or not isAlive() then return end triggerNPC("Ryuga") task.wait(1) dialogueEvent:FireServer(unpack({ { Choice = "[ Challenge Build ]" } })) task.wait(1) dialogueEvent:FireServer(unpack({ { Exit = true } })) task.wait(1) end
+local function takeLostSoulQuest() local char = player.Character or player.CharacterAdded:Wait() local hrp = char:WaitForChild("HumanoidRootPart") if hrp then hrp.CFrame = lokasiDojo * CFrame.new(0, 3, 0) end task.wait(1.5) if not isRunning or not isAlive() then return end triggerNPC("DojoStudent") task.wait(1) dialogueEvent:FireServer(unpack({ { Choice = "Sure.." } })) task.wait(0.5) dialogueEvent:FireServer(unpack({ { Choice = "Ancient Argument" } })) task.wait(0.5) dialogueEvent:FireServer(unpack({ { Choice = "Start 'Ancient Argument'" } })) task.wait(1) if not isRunning or not isAlive() then return end if hrp then hrp.CFrame = lokasiShoichi * CFrame.new(0, 3, 0) end task.wait(1.5) if not isRunning or not isAlive() then return end triggerNPC("Shoichi") task.wait(1) dungeonQuery:InvokeServer(unpack({ "lobbies" })) task.wait(0.5) dialogueEvent:FireServer(unpack({ { Choice = "[ Quest ]" } })) task.wait(0.5) dialogueEvent:FireServer(unpack({ { Exit = true } })) task.wait(0.5) end
+local function takeOreQuest() local char = player.Character or player.CharacterAdded:Wait() local hrp = char:WaitForChild("HumanoidRootPart") if (hrp.Position - leeTheMinerCoords.Position).Magnitude > 20 then hrp.CFrame = leeTheMinerCoords task.wait(1.5) end if not isRunning or not isAlive() then return end triggerNPC("LeeTheMiner") task.wait(1) dialogueEvent:FireServer(unpack({ { Choice = "[ Quest ]" } })) task.wait(0.5) dialogueEvent:FireServer(unpack({ { Choice = "[ Repeatable ]" } })) task.wait(0.5) dialogueEvent:FireServer(unpack({ { Choice = "Yes, I've done it." } })) task.wait(0.5) dialogueEvent:FireServer(unpack({ { Exit = true } })) task.wait(1) end
+local function turnInYenFarmQuest() local char = player.Character or player.CharacterAdded:Wait() local hrp = char:WaitForChild("HumanoidRootPart") if hrp then hrp.CFrame = ryugaCoords end task.wait(1.5) if not isRunning or not isAlive() then return end triggerNPC("Ryuga") task.wait(1) dialogueEvent:FireServer(unpack({ { Choice = "[ Repeatable Quest ]" } })) task.wait(1) dialogueEvent:FireServer(unpack({ { Exit = true } })) task.wait(1) if not isRunning or not isAlive() then return end triggerNPC("Ryuga") task.wait(1) dialogueEvent:FireServer(unpack({ { Choice = "[ Challenge Build ]" } })) task.wait(1) dialogueEvent:FireServer(unpack({ { Exit = true } })) task.wait(1) end
+local function turnInLostSoulQuest() local char = player.Character or player.CharacterAdded:Wait() local hrp = char:WaitForChild("HumanoidRootPart") if hrp then hrp.CFrame = lokasiDojo * CFrame.new(0, 3, 0) end task.wait(1.5) if not isRunning or not isAlive() then return end triggerNPC("DojoStudent") task.wait(1) dialogueEvent:FireServer(unpack({ { Choice = "Yes, I've completed it." } })) task.wait(1) dialogueEvent:FireServer(unpack({ { Choice = "Can I get another quest?" } })) task.wait(1) dialogueEvent:FireServer(unpack({ { Choice = "Ancient Argument" } })) task.wait(1) dialogueEvent:FireServer(unpack({ { Choice = "Start 'Ancient Argument'" } })) task.wait(1) if not isRunning or not isAlive() then return end if hrp then hrp.CFrame = lokasiShoichi * CFrame.new(0, 3, 0) end task.wait(1.5) if not isRunning then return end triggerNPC("Shoichi") task.wait(1) dialogueEvent:FireServer(unpack({ { Choice = "[ Challenge ]" } })) task.wait(0.5) dialogueEvent:FireServer(unpack({ { Choice = "[ Quest ]" } })) task.wait(0.5) dialogueEvent:FireServer(unpack({ { Exit = true } })) task.wait(1) if not isRunning or not isAlive() then return end triggerNPC("Shoichi") task.wait(1) dialogueEvent:FireServer(unpack({ { Choice = "[ Challenge ]" } })) task.wait(0.5) dialogueEvent:FireServer(unpack({ { Choice = "[ Quest ]" } })) task.wait(0.5) dialogueEvent:FireServer(unpack({ { Exit = true } })) task.wait(1.5) end
+local function turnInOreQuest() local char = player.Character or player.CharacterAdded:Wait() local hrp = char:WaitForChild("HumanoidRootPart") if (hrp.Position - leeTheMinerCoords.Position).Magnitude > 20 then hrp.CFrame = leeTheMinerCoords task.wait(1.5) end if not isRunning or not isAlive() then return end triggerNPC("LeeTheMiner") task.wait(1) dialogueEvent:FireServer(unpack({ { Choice = "[ Quest ]" } })) task.wait(0.5) dialogueEvent:FireServer(unpack({ { Choice = "[ Repeatable ]" } })) task.wait(0.5) dialogueEvent:FireServer(unpack({ { Choice = "Yes, I've done it." } })) task.wait(0.5) dialogueEvent:FireServer(unpack({ { Exit = true } })) task.wait(1) end
+local function exchangeOre() local char = player.Character or player.CharacterAdded:Wait() local hrp = char:WaitForChild("HumanoidRootPart") if (hrp.Position - leeTheMinerCoords.Position).Magnitude > 20 then hrp.CFrame = leeTheMinerCoords task.wait(1.5) end triggerNPC("LeeTheMiner") task.wait(1) dialogueEvent:FireServer(unpack({ { Choice = "[ Exchange ]" } })) task.wait(0.5) dialogueEvent:FireServer(unpack({ { Choice = "[ Confirm ]" } })) task.wait(0.5) dialogueEvent:FireServer(unpack({ { Exit = true } })) task.wait(1) end
+local function craftBlueSapphire() local char = player.Character or player.CharacterAdded:Wait() local hrp = char:WaitForChild("HumanoidRootPart") if hrp then hrp.CFrame = craftingCoords end task.wait(1.5) triggerNPC("UniversalCrafting") task.wait(1) dialogueEvent:FireServer(unpack({ { Choice = "[ Craft ]" } })) task.wait(0.5) for i = 1, 24 do craftingRemote:FireServer(unpack({ "Special", "Blue Sappyre" })) end task.wait(1) end
 
--- PRE-QUEST: Ambil Quest Lost Soul
-local function takeLostSoulQuest()
-    local char = player.Character or player.CharacterAdded:Wait()
-    local hrp = char:WaitForChild("HumanoidRootPart")
-
-    if hrp then hrp.CFrame = lokasiDojo * CFrame.new(0, 3, 0) end
-    task.wait(1.5)
-    
-    if not isRunning or not isAlive() then return end
-    triggerNPC("DojoStudent")
-    task.wait(1)
-    dialogueEvent:FireServer(unpack({ { Choice = "Sure.." } }))
-    task.wait(0.5)
-    dialogueEvent:FireServer(unpack({ { Choice = "Ancient Argument" } }))
-    task.wait(0.5)
-    dialogueEvent:FireServer(unpack({ { Choice = "Start 'Ancient Argument'" } }))
-    task.wait(1)
-    
-    if not isRunning or not isAlive() then return end
-    if hrp then hrp.CFrame = lokasiShoichi * CFrame.new(0, 3, 0) end
-    task.wait(1.5)
-    
-    if not isRunning or not isAlive() then return end
-    triggerNPC("Shoichi")
-    task.wait(1)
-    dungeonQuery:InvokeServer(unpack({ "lobbies" }))
-    task.wait(0.5)
-    dialogueEvent:FireServer(unpack({ { Choice = "[ Quest ]" } }))
-    task.wait(0.5)
-    dialogueEvent:FireServer(unpack({ { Exit = true } }))
-    task.wait(0.5)
-end
-
--- PRE-QUEST: Ambil Quest Farm Ore
-local function takeOreQuest()
-    local char = player.Character or player.CharacterAdded:Wait()
-    local hrp = char:WaitForChild("HumanoidRootPart")
-    
-    if (hrp.Position - leeTheMinerCoords.Position).Magnitude > 20 then
-        hrp.CFrame = leeTheMinerCoords
-        task.wait(1.5)
-    end
-    
-    if not isRunning or not isAlive() then return end
-    triggerNPC("LeeTheMiner")
-    task.wait(1)
-    dialogueEvent:FireServer(unpack({ { Choice = "[ Quest ]" } }))
-    task.wait(0.5)
-    dialogueEvent:FireServer(unpack({ { Choice = "[ Repeatable ]" } }))
-    task.wait(0.5)
-    dialogueEvent:FireServer(unpack({ { Choice = "Yes, I've done it." } }))
-    task.wait(0.5)
-    dialogueEvent:FireServer(unpack({ { Exit = true } }))
-    task.wait(1)
-end
-
--- POST-QUEST: Selesaikan Yen Farm
-local function turnInYenFarmQuest()
-    local char = player.Character or player.CharacterAdded:Wait()
-    local hrp = char:WaitForChild("HumanoidRootPart")
-    
-    if hrp then hrp.CFrame = ryugaCoords end
-    task.wait(1.5)
-    
-    if not isRunning or not isAlive() then return end
-    triggerNPC("Ryuga")
-    task.wait(0.5)
-    dialogueEvent:FireServer(unpack({ { Choice = "[ Repeatable Quest ]" } }))
-    task.wait(0.5)
-    dialogueEvent:FireServer(unpack({ { Exit = true } }))
-    task.wait(0.5)
-    
-    if not isRunning or not isAlive() then return end
-    triggerNPC("Ryuga")
-    task.wait(0.5)
-    dialogueEvent:FireServer(unpack({ { Choice = "[ Challenge Build ]" } }))
-    task.wait(0.5)
-    dialogueEvent:FireServer(unpack({ { Exit = true } }))
-    task.wait(0.5)
-end
-
--- POST-QUEST: Selesaikan Lost Soul
-local function turnInLostSoulQuest()
-    local char = player.Character or player.CharacterAdded:Wait()
-    local hrp = char:WaitForChild("HumanoidRootPart")
-
-    if hrp then hrp.CFrame = lokasiDojo * CFrame.new(0, 3, 0) end
-    task.wait(1.5)
-    if not isRunning or not isAlive() then return end
-
-    triggerNPC("DojoStudent")
-    task.wait(1)
-    dialogueEvent:FireServer(unpack({ { Choice = "Yes, I've completed it." } }))
-    task.wait(1)
-    dialogueEvent:FireServer(unpack({ { Choice = "Can I get another quest?" } }))
-    task.wait(1)
-    dialogueEvent:FireServer(unpack({ { Choice = "Ancient Argument" } }))
-    task.wait(1)
-    dialogueEvent:FireServer(unpack({ { Choice = "Start 'Ancient Argument'" } }))
-    task.wait(1)
-    
-    if not isRunning or not isAlive() then return end
-    if hrp then hrp.CFrame = lokasiShoichi * CFrame.new(0, 3, 0) end
-    task.wait(1.5)
-    if not isRunning then return end
-
-    triggerNPC("Shoichi")
-    task.wait(1)
-    dialogueEvent:FireServer(unpack({ { Choice = "[ Challenge ]" } }))
-    task.wait(0.5)
-    dialogueEvent:FireServer(unpack({ { Choice = "[ Quest ]" } }))
-    task.wait(0.5)
-    dialogueEvent:FireServer(unpack({ { Exit = true } }))
-    task.wait(1)
-    
-    if not isRunning or not isAlive() then return end
-    triggerNPC("Shoichi")
-    task.wait(1)
-    dialogueEvent:FireServer(unpack({ { Choice = "[ Challenge ]" } }))
-    task.wait(0.5)
-    dialogueEvent:FireServer(unpack({ { Choice = "[ Quest ]" } }))
-    task.wait(0.5)
-    dialogueEvent:FireServer(unpack({ { Exit = true } }))
-    task.wait(1.5)
-end
-
--- POST-QUEST: Selesaikan Quest Farm Ore
-local function turnInOreQuest()
-    local char = player.Character or player.CharacterAdded:Wait()
-    local hrp = char:WaitForChild("HumanoidRootPart")
-    
-    if (hrp.Position - leeTheMinerCoords.Position).Magnitude > 20 then
-        hrp.CFrame = leeTheMinerCoords
-        task.wait(1.5)
-    end
-    
-    if not isRunning or not isAlive() then return end
-    triggerNPC("LeeTheMiner")
-    task.wait(1)
-    dialogueEvent:FireServer(unpack({ { Choice = "[ Quest ]" } }))
-    task.wait(0.5)
-    dialogueEvent:FireServer(unpack({ { Choice = "[ Repeatable ]" } }))
-    task.wait(0.5)
-    dialogueEvent:FireServer(unpack({ { Choice = "Yes, I've done it." } }))
-    task.wait(0.5)
-    dialogueEvent:FireServer(unpack({ { Exit = true } }))
-    task.wait(1)
-end
-
--- EXCHANGE: Tukar Item Quest Farm Ore
-local function exchangeOre()
-    local char = player.Character or player.CharacterAdded:Wait()
-    local hrp = char:WaitForChild("HumanoidRootPart")
-    
-    if (hrp.Position - leeTheMinerCoords.Position).Magnitude > 20 then
-        hrp.CFrame = leeTheMinerCoords
-        task.wait(1.5)
-    end
-    
-    triggerNPC("LeeTheMiner")
-    task.wait(1)
-    dialogueEvent:FireServer(unpack({ { Choice = "[ Exchange ]" } }))
-    task.wait(0.5)
-    dialogueEvent:FireServer(unpack({ { Choice = "[ Confirm ]" } }))
-    task.wait(0.5)
-    dialogueEvent:FireServer(unpack({ { Exit = true } }))
-    task.wait(1)
-end
-
--- CRAFTING: Craft Blue Sappyre 24x Tanpa Jeda
-local function craftBlueSapphire()
-    local char = player.Character or player.CharacterAdded:Wait()
-    local hrp = char:WaitForChild("HumanoidRootPart")
-    
-    if hrp then hrp.CFrame = craftingCoords end
-    task.wait(1.5)
-    
-    triggerNPC("UniversalCrafting")
-    task.wait(1)
-    
-    dialogueEvent:FireServer(unpack({ { Choice = "[ Craft ]" } }))
-    task.wait(0.5)
-    
-    for i = 1, 24 do
-        craftingRemote:FireServer(unpack({ "Special", "Blue Sappyre" }))
-    end
-    task.wait(1)
-end
+exchangeButton.MouseButton1Click:Connect(function() task.spawn(function() exchangeButton.Text = "EXCHANGING..." exchangeOre() exchangeButton.Text = "EXCHANGE ORE" end) end)
+craftButton.MouseButton1Click:Connect(function() task.spawn(function() craftButton.Text = "CRAFTING..." craftBlueSapphire() craftButton.Text = "CRAFT BLUE SAPPHIRE" end) end)
 
 -- ==========================================
--- FUNGSI TOMBOL MANUAL (TERPISAH)
+-- GLOBAL TRACKER UNTUK LEGIT MODE COOLDOWN
 -- ==========================================
-exchangeButton.MouseButton1Click:Connect(function()
-    task.spawn(function()
-        exchangeButton.Text = "EXCHANGING..."
-        exchangeOre()
-        exchangeButton.Text = "EXCHANGE ORE"
-    end)
-end)
-
-craftButton.MouseButton1Click:Connect(function()
-    task.spawn(function()
-        craftButton.Text = "CRAFTING..."
-        craftBlueSapphire()
-        craftButton.Text = "CRAFT BLUE SAPPHIRE"
-    end)
-end)
-
--- Variabel global untuk timer cooldown Legit Mode
-local lastLegitUltimateTime = 0
+local nextLegitUltTime = 0
+local legitAnimEndTime = 0
 
 -- ==========================================
--- FUNGSI COMBAT & MAGNET (DENGAN COOLDOWN TIMER 22 DETIK)
+-- FUNGSI COMBAT & MAGNET
 -- ==========================================
 local function farmSpecificMob(getMobFunction, mobName, timeout)
     statusSub.Text = "Status: Scan " .. mobName .. "..."
@@ -882,7 +858,7 @@ local function farmSpecificMob(getMobFunction, mobName, timeout)
         if timeout then
             timeWaited = timeWaited + 0.2
             if timeWaited >= timeout then
-                statusSub.Text = mobName .. " di-Skip!"
+                statusSub.Text = mobName .. " tidak ditemukan!"
                 return false
             end
         end
@@ -919,7 +895,6 @@ local function farmSpecificMob(getMobFunction, mobName, timeout)
 
     local characterRef = player.Character or player.CharacterAdded:Wait()
     local playerHandler = characterRef:WaitForChild("PlayerHandler"):WaitForChild("HandlerEvent")
-
     local perksInitialized = false
 
     while isTargetActive and isRunning and isAlive() and task.wait() do
@@ -928,40 +903,35 @@ local function farmSpecificMob(getMobFunction, mobName, timeout)
             local aimCFrame = currentMob.RootPart.CFrame 
             
             if selectedCombat.Name == "Legit" then
-                -- Cek apakah sudah 22 detik berlalu sejak Perks + Ultimate terakhir dieksekusi
-                if os.clock() - lastLegitUltimateTime >= 22 then
-                    -- Eksekusi Perks Skill (Key = "G")
+                local currentTime = os.clock()
+                
+                if currentTime >= nextLegitUltTime then
                     playerHandler:FireServer(unpack({ { IsJump = false, Skill = true, Key = "G", MouseData = aimCFrame } }))
-                    task.wait(0.2)
-                    
-                    -- Eksekusi Ultimate (Key = "V")
+                    task.wait(0.1)
                     playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "V", MouseData = aimCFrame } }))
-                    task.wait(0.2)
                     
-                    -- Update Waktu Terakhir menjadi sekarang
-                    lastLegitUltimateTime = os.clock()
-                else
-                    -- Sembari nunggu 22 detik berlalu, eksekusi Basic, Heavy, dan Skill 1 tanpa henti
+                    legitAnimEndTime = os.clock() + 5.0
+                    nextLegitUltTime = os.clock() + 20.0
+                    
+                elseif currentTime >= legitAnimEndTime then
                     playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "E", MouseData = aimCFrame } }))
                     task.wait(0.08)
-                    
                     playerHandler:FireServer(unpack({ { CombatAction = true, LightAttack = true, MouseData = aimCFrame } }))
                     task.wait(0.08)
-                    
                     playerHandler:FireServer(unpack({ { CombatAction = true, HeavyAttack = true, AttackType = "Down", MouseData = aimCFrame } }))
                     task.wait(0.08)
+                else
+                    task.wait(0.1)
                 end
 
             elseif selectedCombat.Name == "Perks" then
                 if not perksInitialized then
-                    -- UTAMAKAN PERKS & ULTIMATE TERLEBIH DAHULU (Di awal saja untuk mode Perks)
                     playerHandler:FireServer(unpack({ { IsJump = false, Skill = true, Key = "G", MouseData = aimCFrame } }))
                     task.wait(0.2)
                     playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "V", MouseData = aimCFrame } }))
                     task.wait(0.4)
                     perksInitialized = true
                 else
-                    -- SELANJUTNYA SPAM
                     playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "E", MouseData = aimCFrame } }))
                     task.wait(0.06)
                     playerHandler:FireServer(unpack({ { CombatAction = true, LightAttack = true, MouseData = aimCFrame } }))
@@ -975,7 +945,6 @@ local function farmSpecificMob(getMobFunction, mobName, timeout)
                 task.wait(0.12)
 
             else
-                -- Casual / Random (Spam Basic Attack)
                 playerHandler:FireServer(unpack({ { CombatAction = true, LightAttack = true, MouseData = aimCFrame } }))
                 task.wait(0.12)
             end
@@ -1013,6 +982,44 @@ local function mainLoop()
             if not successHenshin then continue end
             if not isRunning then break end
             needsHenshin = false
+        end
+        
+        -- ==========================================
+        -- LOGIKA SINGLE MODE
+        -- ==========================================
+        if selectedMode.ModeName == "Single" then
+            if selectedSingleMob == "" then
+                statusSub.Text = "Status: Pilih Mob terlebih dahulu!"
+                task.wait(1)
+                continue
+            end
+            
+            local currentCharacter = player.Character or player.CharacterAdded:Wait()
+            local attackTool = player.Backpack:FindFirstChild("Attack")
+            if attackTool then
+                currentCharacter:WaitForChild("Humanoid"):EquipTool(attackTool)
+            end
+            
+            local farmSuccess = farmSpecificMob(function()
+                if workspace:FindFirstChild("Mobs") then
+                    for _, target in ipairs(workspace.Mobs:GetChildren()) do
+                        if target.Name == selectedSingleMob and target:FindFirstChild("RootPart") then
+                            local hum = target:FindFirstChild("Humanoid")
+                            if not hum or hum.Health > 0 then
+                                return target
+                            end
+                        end
+                    end
+                end
+                return nil
+            end, selectedSingleMob, 1) 
+            
+            if not farmSuccess then
+                statusSub.Text = "Status: Menunggu " .. selectedSingleMob .. " spawn..."
+                task.wait(0.5)
+            end
+            
+            continue
         end
         
         -- ==========================================
@@ -1177,15 +1184,20 @@ local function mainLoop()
         
         if mapStr == "AncientWorld" then
             farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Kugha") end return nil end, "Kugha")
-            if farmSuccess then task.wait(1.5) farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("FlyingXugo") end return nil end, "FlyingXugo", 3) end
-            if farmSuccess then farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Agito") end return nil end, "Agito") end
-            if farmSuccess then farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Daguba") end return nil end, "Daguba") end
+            if farmSuccess and isRunning and isAlive() then 
+                task.wait(1.5) 
+                farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("FlyingXugo") end return nil end, "FlyingXugo", 3) 
+            end
+            if isRunning and isAlive() then 
+                farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Agito") end return nil end, "Agito") 
+            end
+            if farmSuccess and isRunning and isAlive() then 
+                farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Daguba") end return nil end, "Daguba") 
+            end
 
         elseif mapStr == "FourzeTrial" then
-            -- 1. Scan & Loop Shocker
             for i = 1, 8 do
                 if not isRunning or not isAlive() then farmSuccess = false break end
-                
                 local scanResult = farmSpecificMob(function()
                     if workspace:FindFirstChild("Mobs") then
                         for _, mob in ipairs(workspace.Mobs:GetChildren()) do
@@ -1204,35 +1216,16 @@ local function mainLoop()
                     statusSub.Text = "Status: Shocker habis/lewat, lanjut RyoGills..."
                     break
                 end
-                
                 if not isRunning or not isAlive() then break end
                 task.wait(0.3)
             end
             
-            -- 2. Target ke-2: RyoGills
             if isRunning and isAlive() then
-                farmSuccess = farmSpecificMob(function()
-                    if workspace:FindFirstChild("Mobs") then
-                        local ryo = workspace.Mobs:FindFirstChild("RyoGills")
-                        if ryo and ryo:FindFirstChild("RootPart") then
-                            return ryo
-                        end
-                    end
-                    return nil
-                end, "RyoGills", 5)
+                farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then local ryo = workspace.Mobs:FindFirstChild("RyoGills") if ryo and ryo:FindFirstChild("RootPart") then return ryo end end return nil end, "RyoGills", 5)
             end
 
-            -- 3. Target ke-3: ZodiartBoss
             if farmSuccess and isRunning and isAlive() then
-                farmSuccess = farmSpecificMob(function()
-                    if workspace:FindFirstChild("Mobs") then
-                        local zodiart = workspace.Mobs:FindFirstChild("ZodiartBoss")
-                        if zodiart and zodiart:FindFirstChild("RootPart") then
-                            return zodiart
-                        end
-                    end
-                    return nil
-                end, "ZodiartBoss", 5)
+                farmSuccess = farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then local zodiart = workspace.Mobs:FindFirstChild("ZodiartBoss") if zodiart and zodiart:FindFirstChild("RootPart") then return zodiart end end return nil end, "ZodiartBoss", 5)
             end
 
         elseif mapStr == "Irreplaceable" then
@@ -1316,6 +1309,8 @@ toggleButton.MouseButton1Click:Connect(function()
         dungeonList.Visible = false
         diffList.Visible = false
         combatList.Visible = false
+        henshinList.Visible = false
+        singleMobList.Visible = false
         toggleButton.Text = "STOP FARMING"
         TweenService:Create(toggleButton, TweenInfo.new(0.2), {BackgroundColor3 = colorOn}):Play()
         task.spawn(mainLoop)
