@@ -1047,7 +1047,7 @@ local function mainLoop()
         end
         
         -- ==========================================
-        -- LOGIKA BARU: FARM LIVING PAPERS (FIXED ANTI-STUCK & SPECIFIC STEED)
+        -- LOGIKA BARU: FARM LIVING PAPERS (BUNUH 2 STEED, LALU LANJUT LAPOR QUEST)
         -- ==========================================
         if selectedMode.ModeName == "Farm Living Papers" then
             if livingPapersQuestCount == 0 then
@@ -1101,93 +1101,92 @@ local function mainLoop()
             end, "Kyza", 5)
             if not isRunning or not isAlive() then continue end
 
-            -- 3. Target Steed spesifik (Ambil dari GetChildren, hindari steed utama, bunuh 1x saja tanpa re-scan)
+            -- 3. Target 2 Steed (Bunuh KEDUA Steed secara berurutan, lalu langsung lapor quest tanpa scan ulang)
             statusSub.Text = "Status: Menuju Steed..."
             if currentCharacter and currentCharacter:FindFirstChild("HumanoidRootPart") then
                 currentCharacter.HumanoidRootPart.CFrame = smartUncleLoc 
                 task.wait(1)
             end
             
-            -- Cari instance Steed spesifik dari getchildren (bukan yang utama)
-            local targetSteedInstance = nil
-            local scanTimeout = os.clock() + 5
-            while isRunning and isAlive() and os.clock() < scanTimeout do
-                local mobsFolder = workspace:FindFirstChild("Mobs")
-                if mobsFolder then
-                    local steeds = {}
-                    for _, mob in ipairs(mobsFolder:GetChildren()) do
-                        if mob.Name == "Steed" and mob:FindFirstChild("RootPart") then
-                            table.insert(steeds, mob)
+            -- Lakukan perulangan kill untuk 2 Steed
+            for killAttempt = 1, 2 do
+                if not isRunning or not isAlive() then break end
+                
+                local targetSteedInstance = nil
+                local scanTimeout = os.clock() + 5
+                while isRunning and isAlive() and os.clock() < scanTimeout do
+                    local mobsFolder = workspace:FindFirstChild("Mobs")
+                    if mobsFolder then
+                        for _, mob in ipairs(mobsFolder:GetChildren()) do
+                            if mob.Name == "Steed" and mob:FindFirstChild("RootPart") then
+                                local hum = mob:FindFirstChild("Humanoid")
+                                if not hum or hum.Health > 0 then
+                                    targetSteedInstance = mob
+                                    break
+                                end
+                            end
                         end
+                        if targetSteedInstance then break end
                     end
-                    -- Jika ada lebih dari 1, ambil steed kedua (bukan yang utama/pertama)
-                    if #steeds >= 2 then
-                        targetSteedInstance = steeds[2]
-                        break
-                    elseif #steeds == 1 then
-                        targetSteedInstance = steeds[1]
-                        break
-                    end
+                    task.wait(0.2)
                 end
-                task.wait(0.2)
-            end
 
-            -- Bunuh tepat 1 Steed target tersebut secara spesifik
-            if targetSteedInstance and targetSteedInstance:FindFirstChild("RootPart") then
-                statusSub.Text = "Farming: Steed (Spesifik) ⚔️ (" .. selectedCombat.Name .. ")"
-                local isTargetActive = true
-                local magnetConnection
-                magnetConnection = RunService.Heartbeat:Connect(function()
-                    if not isTargetActive or not isRunning or not isAlive() then return end
-                    if targetSteedInstance and targetSteedInstance:FindFirstChild("RootPart") then
-                        local targetRoot = targetSteedInstance.RootPart
+                if targetSteedInstance and targetSteedInstance:FindFirstChild("RootPart") then
+                    statusSub.Text = "Farming: Steed " .. killAttempt .. "/2 ⚔️ (" .. selectedCombat.Name .. ")"
+                    local isTargetActive = true
+                    local magnetConnection
+                    magnetConnection = RunService.Heartbeat:Connect(function()
+                        if not isTargetActive or not isRunning or not isAlive() then return end
+                        if targetSteedInstance and targetSteedInstance:FindFirstChild("RootPart") then
+                            local targetRoot = targetSteedInstance.RootPart
+                            local targetHumanoid = targetSteedInstance:FindFirstChild("Humanoid")
+                            local currentChar = player.Character
+                            local currentHRP = currentChar and currentChar:FindFirstChild("HumanoidRootPart")
+
+                            if currentHRP and targetRoot and (not targetHumanoid or targetHumanoid.Health > 0) then
+                                currentHRP.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                                currentHRP.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+                                currentChar:PivotTo(targetRoot.CFrame * CFrame.new(0, 0, 3))
+                            elseif targetHumanoid and targetHumanoid.Health <= 0 then
+                                isTargetActive = false
+                            elseif not targetRoot or not targetRoot.Parent then
+                                isTargetActive = false
+                            end
+                        else
+                            isTargetActive = false
+                        end
+                    end)
+
+                    local characterRef = player.Character or player.CharacterAdded:Wait()
+                    local playerHandler = characterRef:WaitForChild("PlayerHandler"):WaitForChild("HandlerEvent")
+
+                    while isTargetActive and isRunning and isAlive() and targetSteedInstance and targetSteedInstance.Parent do
                         local targetHumanoid = targetSteedInstance:FindFirstChild("Humanoid")
-                        local currentChar = player.Character
-                        local currentHRP = currentChar and currentChar:FindFirstChild("HumanoidRootPart")
-
-                        if currentHRP and targetRoot and (not targetHumanoid or targetHumanoid.Health > 0) then
-                            currentHRP.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-                            currentHRP.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-                            currentChar:PivotTo(targetRoot.CFrame * CFrame.new(0, 0, 3))
-                        elseif targetHumanoid and targetHumanoid.Health <= 0 then
-                            isTargetActive = false
-                        elseif not targetRoot or not targetRoot.Parent then
-                            isTargetActive = false
+                        if targetHumanoid and targetHumanoid.Health <= 0 then
+                            break
                         end
-                    else
-                        isTargetActive = false
+                        local targetRoot = targetSteedInstance:FindFirstChild("RootPart")
+                        if not targetRoot then break end
+                        
+                        local aimCFrame = targetRoot.CFrame 
+                        if selectedCombat.Name == "Legit" then
+                            playerHandler:FireServer(unpack({ { CombatAction = true, LightAttack = true, MouseData = aimCFrame } }))
+                            task.wait(0.08)
+                        elseif selectedCombat.Name == "Perks" then
+                            playerHandler:FireServer(unpack({ { CombatAction = true, LightAttack = true, MouseData = aimCFrame } }))
+                            task.wait(0.06)
+                        elseif selectedCombat.Name == "Heavy Attack" then
+                            playerHandler:FireServer(unpack({ { CombatAction = true, HeavyAttack = true, AttackType = "Down", MouseData = aimCFrame } }))
+                            task.wait(0.12)
+                        else
+                            playerHandler:FireServer(unpack({ { CombatAction = true, LightAttack = true, MouseData = aimCFrame } }))
+                            task.wait(0.12)
+                        end
                     end
-                end)
 
-                local characterRef = player.Character or player.CharacterAdded:Wait()
-                local playerHandler = characterRef:WaitForChild("PlayerHandler"):WaitForChild("HandlerEvent")
-
-                while isTargetActive and isRunning and isAlive() and targetSteedInstance and targetSteedInstance.Parent do
-                    local targetHumanoid = targetSteedInstance:FindFirstChild("Humanoid")
-                    if targetHumanoid and targetHumanoid.Health <= 0 then
-                        break
-                    end
-                    local targetRoot = targetSteedInstance:FindFirstChild("RootPart")
-                    if not targetRoot then break end
-                    
-                    local aimCFrame = targetRoot.CFrame 
-                    if selectedCombat.Name == "Legit" then
-                        playerHandler:FireServer(unpack({ { CombatAction = true, LightAttack = true, MouseData = aimCFrame } }))
-                        task.wait(0.08)
-                    elseif selectedCombat.Name == "Perks" then
-                        playerHandler:FireServer(unpack({ { CombatAction = true, LightAttack = true, MouseData = aimCFrame } }))
-                        task.wait(0.06)
-                    elseif selectedCombat.Name == "Heavy Attack" then
-                        playerHandler:FireServer(unpack({ { CombatAction = true, HeavyAttack = true, AttackType = "Down", MouseData = aimCFrame } }))
-                        task.wait(0.12)
-                    else
-                        playerHandler:FireServer(unpack({ { CombatAction = true, LightAttack = true, MouseData = aimCFrame } }))
-                        task.wait(0.12)
-                    end
+                    if magnetConnection then magnetConnection:Disconnect() end
+                    task.wait(0.3)
                 end
-
-                if magnetConnection then magnetConnection:Disconnect() end
-                task.wait(0.3)
             end
 
             if not isRunning or not isAlive() then continue end
