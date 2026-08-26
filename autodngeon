@@ -1101,29 +1101,47 @@ local function mainLoop()
             end, "Kyza", 5)
             if not isRunning or not isAlive() then continue end
 
-            -- 3. Target Steed (Teleport ke tempat sebelum Kyza & Kill 1x Saja)
+            -- 3. Target Steed spesifik (hanya 1) melalui getchildren 
             statusSub.Text = "Status: Menuju Steed..."
             if currentCharacter and currentCharacter:FindFirstChild("HumanoidRootPart") then
-                -- Teleport ke lokasi sebelum Kyza agar bisa men-scan Steed
                 currentCharacter.HumanoidRootPart.CFrame = smartUncleLoc 
                 task.wait(1)
             end
             
-            -- Membunuh Steed 1x saja tanpa ada while loop yang tidak berhenti
             farmSpecificMob(function() 
-                if workspace:FindFirstChild("Mobs") then 
-                    for _, mob in ipairs(workspace.Mobs:GetChildren()) do
-                        if mob.Name == "Steed" and mob:FindFirstChild("RootPart") then
-                            local hum = mob:FindFirstChild("Humanoid")
-                            if not hum or hum.Health > 0 then return mob end
+                local mobsFolder = workspace:FindFirstChild("Mobs")
+                if mobsFolder then 
+                    local mobList = mobsFolder:GetChildren()
+                    
+                    -- Mengincar index Steed secara spesifik (GetChildren()[53])
+                    local targetSteed = mobList[53]
+                    if targetSteed and targetSteed.Name == "Steed" and targetSteed:FindFirstChild("RootPart") then
+                        local hum = targetSteed:FindFirstChild("Humanoid")
+                        if not hum or hum.Health > 0 then return targetSteed end
+                    end
+                    
+                    -- Fallback: Jika index 53 tidak valid, ambil Steed paling bawah dari daftar GetChildren (agar tidak terambil Steed awal)
+                    for i = #mobList, 1, -1 do
+                        local m = mobList[i]
+                        if m.Name == "Steed" and m:FindFirstChild("RootPart") then
+                            local hum = m:FindFirstChild("Humanoid")
+                            if not hum or hum.Health > 0 then return m end
                         end
                     end
                 end 
                 return nil 
-            end, "Steed", 5)
+            end, "Steed (Spesifik)", 5)
+            
             if not isRunning or not isAlive() then continue end
 
-            -- Lapor Quest & Ambil Ulang (Hanya dipanggil SETELAH membunuh Steed)
+            -- LEPASKAN SENJATA (UNEQUIP) SEBELUM LAPOR QUEST
+            local activeChar = player.Character
+            if activeChar then
+                local equippedTool = activeChar:FindFirstChild("Attack")
+                if equippedTool then equippedTool.Parent = player.Backpack end
+            end
+
+            -- Lapor Quest & Ambil Ulang 
             statusSub.Text = "Status: Menyelesaikan Quest Smart..."
             turnInLivingPapersQuest()
             livingPapersQuestCount = livingPapersQuestCount + 1
