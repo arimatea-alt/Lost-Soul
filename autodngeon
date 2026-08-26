@@ -1001,6 +1001,26 @@ local function farmSpecificMob(getMobFunction, mobName, timeout)
                     task.wait(0.06)
                 end
 
+            elseif selectedCombat.Name == "Random" then
+                -- Randomly spam Basic Attack, Heavy Attack, Skill 1 (Key E), atau Ultimate (Key G/V)
+                local randAction = math.random(1, 4)
+                if randAction == 1 then
+                    -- Basic Attack
+                    playerHandler:FireServer(unpack({ { CombatAction = true, LightAttack = true, MouseData = aimCFrame } }))
+                elseif randAction == 2 then
+                    -- Heavy Attack
+                    playerHandler:FireServer(unpack({ { CombatAction = true, HeavyAttack = true, AttackType = "Down", MouseData = aimCFrame } }))
+                elseif randAction == 3 then
+                    -- Skill 1 (Key E)
+                    playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "E", MouseData = aimCFrame } }))
+                elseif randAction == 4 then
+                    -- Ultimate (Key G + V)
+                    playerHandler:FireServer(unpack({ { IsJump = false, Skill = true, Key = "G", MouseData = aimCFrame } }))
+                    task.wait(0.05)
+                    playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "V", MouseData = aimCFrame } }))
+                end
+                task.wait(0.1)
+
             elseif selectedCombat.Name == "Heavy Attack" then
                 playerHandler:FireServer(unpack({ { CombatAction = true, HeavyAttack = true, AttackType = "Down", MouseData = aimCFrame } }))
                 task.wait(0.12)
@@ -1169,12 +1189,28 @@ local function mainLoop()
                         if not targetRoot then break end
                         
                         local aimCFrame = targetRoot.CFrame 
+                        
+                        -- Menggunakan fungsi combat yang sedang dipilih user (termasuk Random baru)
                         if selectedCombat.Name == "Legit" then
                             playerHandler:FireServer(unpack({ { CombatAction = true, LightAttack = true, MouseData = aimCFrame } }))
                             task.wait(0.08)
                         elseif selectedCombat.Name == "Perks" then
                             playerHandler:FireServer(unpack({ { CombatAction = true, LightAttack = true, MouseData = aimCFrame } }))
                             task.wait(0.06)
+                        elseif selectedCombat.Name == "Random" then
+                            local randAction = math.random(1, 4)
+                            if randAction == 1 then
+                                playerHandler:FireServer(unpack({ { CombatAction = true, LightAttack = true, MouseData = aimCFrame } }))
+                            elseif randAction == 2 then
+                                playerHandler:FireServer(unpack({ { CombatAction = true, HeavyAttack = true, AttackType = "Down", MouseData = aimCFrame } }))
+                            elseif randAction == 3 then
+                                playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "E", MouseData = aimCFrame } }))
+                            elseif randAction == 4 then
+                                playerHandler:FireServer(unpack({ { IsJump = false, Skill = true, Key = "G", MouseData = aimCFrame } }))
+                                task.wait(0.05)
+                                playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "V", MouseData = aimCFrame } }))
+                            end
+                            task.wait(0.1)
                         elseif selectedCombat.Name == "Heavy Attack" then
                             playerHandler:FireServer(unpack({ { CombatAction = true, HeavyAttack = true, AttackType = "Down", MouseData = aimCFrame } }))
                             task.wait(0.12)
@@ -1303,7 +1339,24 @@ local function mainLoop()
                     while targetMob and targetMob.Parent and targetRoot and targetRoot.Parent and isRunning and isAlive() do
                         if playerHandler then
                             local aimCFrame = targetRoot.CFrame
-                            playerHandler:FireServer(unpack({ { CombatAction = true, LightAttack = true, MouseData = aimCFrame } }))
+                            
+                            if selectedCombat.Name == "Random" then
+                                local randAction = math.random(1, 4)
+                                if randAction == 1 then
+                                    playerHandler:FireServer(unpack({ { CombatAction = true, LightAttack = true, MouseData = aimCFrame } }))
+                                elseif randAction == 2 then
+                                    playerHandler:FireServer(unpack({ { CombatAction = true, HeavyAttack = true, AttackType = "Down", MouseData = aimCFrame } }))
+                                elseif randAction == 3 then
+                                    playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "E", MouseData = aimCFrame } }))
+                                elseif randAction == 4 then
+                                    playerHandler:FireServer(unpack({ { IsJump = false, Skill = true, Key = "G", MouseData = aimCFrame } }))
+                                    task.wait(0.05)
+                                    playerHandler:FireServer(unpack({ { Skill = true, AttackType = "Down", Key = "V", MouseData = aimCFrame } }))
+                                end
+                                task.wait(0.1)
+                            else
+                                playerHandler:FireServer(unpack({ { CombatAction = true, LightAttack = true, MouseData = aimCFrame } }))
+                            end
                         end
                         task.wait(0.12)
                     end
