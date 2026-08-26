@@ -31,12 +31,15 @@ local dungeonQuery = remoteFolder:WaitForChild("Dungeon"):WaitForChild("QueryDat
 local foundationEvent = remoteFolder:WaitForChild("Event"):WaitForChild("FoundationEventRemote")
 local craftingRemote = remoteFolder:WaitForChild("Event"):WaitForChild("CraftingRemote")
 
--- Koordinat Target NPC & Crafting
+-- Koordinat Target NPC, Crafting, & Lokasi Farming Baru
 local ryugaCoords = CFrame.new(3474, -2, -1704) -- Yen Farm
 local lokasiDojo = CFrame.new(-1170, 2, -565)   -- Lost Soul (DojoStudent)
 local lokasiShoichi = CFrame.new(-3441, -2, -3178) -- Lost Soul (Shoichi)
 local leeTheMinerCoords = CFrame.new(-1226, -1, -1203) -- Farm Ore
 local craftingCoords = CFrame.new(-862, 26, -25) -- Koordinat Crafting
+local smartUncleLoc = CFrame.new(803, 10, -837) -- Quest Smart Alliance & Fyze/Steed
+local kyzaLoc = CFrame.new(1053, 10, -881) -- Lokasi scan Kyza
+local smartDeputyLoc = CFrame.new(-858, 26, -204) -- Exchange Unknown Cards
 
 -- ==========================================
 -- DATABASE GAME MODES & COMBAT MODES
@@ -78,6 +81,12 @@ local gameModes = {
         ModeName = "Farm Ore",
         Dungeons = {
             { Name = "Farm MiningGoon", Type = "farm", Map = "None", Difficulties = { {Name = "Normal", Int = 1} } }
+        }
+    },
+    {
+        ModeName = "Farm Living Papers",
+        Dungeons = {
+            { Name = "Smart's Alliance", Type = "farm", Map = "None", Difficulties = { {Name = "Normal", Int = 1} } }
         }
     },
     {
@@ -819,6 +828,7 @@ local function triggerNPC(npcName)
     end
 end
 
+-- SEMUA FUNGSI QUEST
 local function takeYenFarmQuest() local char = player.Character or player.CharacterAdded:Wait() local hrp = char:WaitForChild("HumanoidRootPart") if (hrp.Position - ryugaCoords.Position).Magnitude > 20 then hrp.CFrame = ryugaCoords task.wait(1.5) end if not isRunning or not isAlive() then return end triggerNPC("Ryuga") task.wait(1) dialogueEvent:FireServer(unpack({ { Choice = "[ Repeatable Quest ]" } })) task.wait(1) dialogueEvent:FireServer(unpack({ { Exit = true } })) task.wait(1) if not isRunning or not isAlive() then return end triggerNPC("Ryuga") task.wait(1) dialogueEvent:FireServer(unpack({ { Choice = "[ Challenge Build ]" } })) task.wait(1) dialogueEvent:FireServer(unpack({ { Exit = true } })) task.wait(1) end
 local function takeLostSoulQuest() local char = player.Character or player.CharacterAdded:Wait() local hrp = char:WaitForChild("HumanoidRootPart") if hrp then hrp.CFrame = lokasiDojo * CFrame.new(0, 3, 0) end task.wait(1.5) if not isRunning or not isAlive() then return end triggerNPC("DojoStudent") task.wait(1) dialogueEvent:FireServer(unpack({ { Choice = "Sure.." } })) task.wait(0.5) dialogueEvent:FireServer(unpack({ { Choice = "Ancient Argument" } })) task.wait(0.5) dialogueEvent:FireServer(unpack({ { Choice = "Start 'Ancient Argument'" } })) task.wait(1) if not isRunning or not isAlive() then return end if hrp then hrp.CFrame = lokasiShoichi * CFrame.new(0, 3, 0) end task.wait(1.5) if not isRunning or not isAlive() then return end triggerNPC("Shoichi") task.wait(1) dungeonQuery:InvokeServer(unpack({ "lobbies" })) task.wait(0.5) dialogueEvent:FireServer(unpack({ { Choice = "[ Quest ]" } })) task.wait(0.5) dialogueEvent:FireServer(unpack({ { Exit = true } })) task.wait(0.5) end
 local function takeOreQuest() local char = player.Character or player.CharacterAdded:Wait() local hrp = char:WaitForChild("HumanoidRootPart") if (hrp.Position - leeTheMinerCoords.Position).Magnitude > 20 then hrp.CFrame = leeTheMinerCoords task.wait(1.5) end if not isRunning or not isAlive() then return end triggerNPC("LeeTheMiner") task.wait(1) dialogueEvent:FireServer(unpack({ { Choice = "[ Quest ]" } })) task.wait(0.5) dialogueEvent:FireServer(unpack({ { Choice = "[ Repeatable ]" } })) task.wait(0.5) dialogueEvent:FireServer(unpack({ { Choice = "Yes, I've done it." } })) task.wait(0.5) dialogueEvent:FireServer(unpack({ { Exit = true } })) task.wait(1) end
@@ -827,6 +837,57 @@ local function turnInLostSoulQuest() local char = player.Character or player.Cha
 local function turnInOreQuest() local char = player.Character or player.CharacterAdded:Wait() local hrp = char:WaitForChild("HumanoidRootPart") if (hrp.Position - leeTheMinerCoords.Position).Magnitude > 20 then hrp.CFrame = leeTheMinerCoords task.wait(1.5) end if not isRunning or not isAlive() then return end triggerNPC("LeeTheMiner") task.wait(1) dialogueEvent:FireServer(unpack({ { Choice = "[ Quest ]" } })) task.wait(0.5) dialogueEvent:FireServer(unpack({ { Choice = "[ Repeatable ]" } })) task.wait(0.5) dialogueEvent:FireServer(unpack({ { Choice = "Yes, I've done it." } })) task.wait(0.5) dialogueEvent:FireServer(unpack({ { Exit = true } })) task.wait(1) end
 local function exchangeOre() local char = player.Character or player.CharacterAdded:Wait() local hrp = char:WaitForChild("HumanoidRootPart") if (hrp.Position - leeTheMinerCoords.Position).Magnitude > 20 then hrp.CFrame = leeTheMinerCoords task.wait(1.5) end triggerNPC("LeeTheMiner") task.wait(1) dialogueEvent:FireServer(unpack({ { Choice = "[ Exchange ]" } })) task.wait(0.5) dialogueEvent:FireServer(unpack({ { Choice = "[ Confirm ]" } })) task.wait(0.5) dialogueEvent:FireServer(unpack({ { Exit = true } })) task.wait(1) end
 local function craftBlueSapphire() local char = player.Character or player.CharacterAdded:Wait() local hrp = char:WaitForChild("HumanoidRootPart") if hrp then hrp.CFrame = craftingCoords end task.wait(1.5) triggerNPC("UniversalCrafting") task.wait(1) dialogueEvent:FireServer(unpack({ { Choice = "[ Craft ]" } })) task.wait(0.5) for i = 1, 24 do craftingRemote:FireServer(unpack({ "Special", "Blue Sappyre" })) end task.wait(1) end
+
+-- FUNGSI BARU UNTUK LIVING PAPERS
+local function takeLivingPapersQuest()
+    local char = player.Character or player.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart")
+    if hrp then hrp.CFrame = smartUncleLoc end
+    task.wait(1.5)
+    if not isRunning or not isAlive() then return end
+    triggerNPC("SmartUncle")
+    task.wait(1)
+    dialogueEvent:FireServer(unpack({ { Choice = "Have any quests?" } }))
+    task.wait(0.5)
+    dialogueEvent:FireServer(unpack({ { Choice = "Smart's Alliance" } }))
+    task.wait(0.5)
+    dialogueEvent:FireServer(unpack({ { Choice = "Start 'Smart's Alliance'" } }))
+    task.wait(1)
+end
+
+local function turnInLivingPapersQuest()
+    local char = player.Character or player.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart")
+    if hrp then hrp.CFrame = smartUncleLoc end
+    task.wait(1.5)
+    if not isRunning or not isAlive() then return end
+    triggerNPC("SmartUncle")
+    task.wait(1)
+    dialogueEvent:FireServer(unpack({ { Choice = "Yes, I've completed it." } }))
+    task.wait(0.5)
+    dialogueEvent:FireServer(unpack({ { Choice = "Can I get another quest?" } }))
+    task.wait(0.5)
+    dialogueEvent:FireServer(unpack({ { Choice = "Smart's Alliance" } }))
+    task.wait(0.5)
+    dialogueEvent:FireServer(unpack({ { Choice = "Start 'Smart's Alliance'" } }))
+    task.wait(1)
+end
+
+local function exchangeLivingPapers()
+    local char = player.Character or player.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart")
+    if hrp then hrp.CFrame = smartDeputyLoc end
+    task.wait(1.5)
+    if not isRunning or not isAlive() then return end
+    triggerNPC("SmartDeputy")
+    task.wait(1)
+    dialogueEvent:FireServer(unpack({ { Choice = "Unknown Cards" } }))
+    task.wait(0.5)
+    dialogueEvent:FireServer(unpack({ { Choice = "[ Inspect ]" } }))
+    task.wait(0.5)
+    dialogueEvent:FireServer(unpack({ { Exit = true } }))
+    task.wait(1)
+end
 
 exchangeButton.MouseButton1Click:Connect(function() task.spawn(function() exchangeButton.Text = "EXCHANGING..." exchangeOre() exchangeButton.Text = "EXCHANGE ORE" end) end)
 craftButton.MouseButton1Click:Connect(function() task.spawn(function() craftButton.Text = "CRAFTING..." craftBlueSapphire() craftButton.Text = "CRAFT BLUE SAPPHIRE" end) end)
@@ -967,6 +1028,7 @@ local function mainLoop()
     local needsHenshin = true
     local oreQuestCount = 0   
     local exchangeSessionCount = 0 
+    local livingPapersQuestCount = 0 -- Counter baru untuk Mode Living Papers
 
     while isRunning do
         if not isAlive() then
@@ -984,6 +1046,88 @@ local function mainLoop()
             needsHenshin = false
         end
         
+        -- ==========================================
+        -- LOGIKA BARU: FARM LIVING PAPERS
+        -- ==========================================
+        if selectedMode.ModeName == "Farm Living Papers" then
+            if livingPapersQuestCount == 0 then
+                statusSub.Text = "Status: Mengambil Quest Smart..."
+                takeLivingPapersQuest()
+                if not isAlive() then continue end
+                if not isRunning then break end
+            end
+
+            local currentCharacter = player.Character or player.CharacterAdded:Wait()
+            local attackTool = player.Backpack:FindFirstChild("Attack")
+            if attackTool then
+                currentCharacter:WaitForChild("Humanoid"):EquipTool(attackTool)
+            end
+
+            -- 1. Target Fyze
+            statusSub.Text = "Status: Menuju Fyze..."
+            if currentCharacter and currentCharacter:FindFirstChild("HumanoidRootPart") then
+                currentCharacter.HumanoidRootPart.CFrame = smartUncleLoc
+                task.wait(0.5)
+            end
+            farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Fyze") end return nil end, "Fyze", 5)
+            if not isRunning or not isAlive() then continue end
+
+            -- 2. Target Kyza
+            statusSub.Text = "Status: Menuju Kyza..."
+            if currentCharacter and currentCharacter:FindFirstChild("HumanoidRootPart") then
+                currentCharacter.HumanoidRootPart.CFrame = kyzaLoc
+                task.wait(1)
+            end
+            farmSpecificMob(function() if workspace:FindFirstChild("Mobs") then return workspace.Mobs:FindFirstChild("Kyza") end return nil end, "Kyza", 5)
+            if not isRunning or not isAlive() then continue end
+
+            -- 3. Target Steed (Kill 2x)
+            statusSub.Text = "Status: Menuju Steed..."
+            if currentCharacter and currentCharacter:FindFirstChild("HumanoidRootPart") then
+                currentCharacter.HumanoidRootPart.CFrame = smartUncleLoc
+                task.wait(1)
+            end
+            
+            local steedKilled = 0
+            while steedKilled < 2 and isRunning and isAlive() do
+                local steedFound = farmSpecificMob(function()
+                    if workspace:FindFirstChild("Mobs") then
+                        for _, mob in ipairs(workspace.Mobs:GetChildren()) do
+                            if mob.Name == "Steed" and mob:FindFirstChild("RootPart") then
+                                local hum = mob:FindFirstChild("Humanoid")
+                                if not hum or hum.Health > 0 then
+                                    return mob
+                                end
+                            end
+                        end
+                    end
+                    return nil
+                end, "Steed (" .. (steedKilled + 1) .. "/2)", 5)
+                
+                if steedFound then
+                    steedKilled = steedKilled + 1
+                else
+                    statusSub.Text = "Menunggu Steed Spawn..."
+                    task.wait(1)
+                end
+            end
+            if not isRunning or not isAlive() then continue end
+
+            -- Lapor Quest & Ambil Ulang
+            statusSub.Text = "Status: Menyelesaikan Quest Smart..."
+            turnInLivingPapersQuest()
+            livingPapersQuestCount = livingPapersQuestCount + 1
+
+            -- Cek Exchange Setelah 8 Kali Loop
+            if livingPapersQuestCount >= 8 then
+                statusSub.Text = "Status: Exchange Unknown Cards..."
+                exchangeLivingPapers()
+                livingPapersQuestCount = 0 -- Reset kembali
+            end
+            
+            continue
+        end
+
         -- ==========================================
         -- LOGIKA SINGLE MODE
         -- ==========================================
